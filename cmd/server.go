@@ -30,6 +30,7 @@ var clientCertificatePK string
 var certStoreSearchKey string
 var insecuretls bool
 var httpport int
+var publishFilePath string
 
 func main() {
 
@@ -54,7 +55,7 @@ func main() {
 
 				Flags: []cli.Flag{
 					&cli.StringFlag{
-						Name:        "clusterendpoint",
+						Name:        "clusterEndpoint",
 						Aliases:     []string{"e"},
 						Value:       "",
 						Usage:       "cluster endpoint [http://localhost:19080]",
@@ -74,7 +75,7 @@ func main() {
 						Name:        "clientCertificatePK",
 						Value:       "",
 						Usage:       "path or content for the client certificate private key",
-						EnvVars:     []string{"CLUSTER_CERT_SEARCH_KEY"},
+						EnvVars:     []string{"CLIENT_CERT_PK"},
 						Destination: &clientCertificatePK,
 						Required:    false,
 					},
@@ -97,12 +98,21 @@ func main() {
 						Required:    true,
 					},
 					&cli.BoolFlag{
-						Name:        "insecuretls",
+						Name:        "insecureTLS",
 						Aliases:     []string{"i"},
 						Value:       false,
 						Usage:       "allow skip checking server CA/hostname",
 						EnvVars:     []string{"INSECURE_TLS"},
 						Destination: &insecuretls,
+						Required:    false,
+					},
+					&cli.StringFlag{
+						Name:        "publishFilePath",
+						Aliases:     []string{"f"},
+						Value:       "",
+						Usage:       "filename to write to, empty won't write anywhere",
+						EnvVars:     []string{"PUBLISH_FILE_PATH"},
+						Destination: &publishFilePath,
 						Required:    false,
 					},
 				},
@@ -139,7 +149,7 @@ func server(ctx *cli.Context) error {
 	config.CertificateKey = clientCertificatePK
 	config.InsecureSkipVerify = insecuretls
 
-	disco, err := disco.NewDiscoveryService(config, nil, httpport)
+	disco, err := disco.NewDiscoveryService(config, publishFilePath, nil, httpport)
 	if err != nil {
 		log.Fatalf("failed to start new discovery service: ", err)
 	}

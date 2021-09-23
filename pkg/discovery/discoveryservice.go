@@ -4,6 +4,7 @@ import (
 	"context"
 	"crypto/tls"
 	"math/rand"
+	"os"
 	"sync"
 	"time"
 
@@ -14,20 +15,22 @@ type DiscoveryService struct {
 	httpPort int
 	cfgChan  chan []byte
 
-	ctx            context.Context
-	cancel         context.CancelFunc
-	clientChannels map[string]chan []byte
-	mtx            sync.Mutex
+	publishFilePath string
+	ctx             context.Context
+	cancel          context.CancelFunc
+	clientChannels  map[string]chan []byte
+	mtx             sync.Mutex
 }
 
 // NewDiscoveryService creates a new discovery service on the http port using the passed cert
-func NewDiscoveryService(config *Config, cert *tls.Certificate, httpPort int) (*DiscoveryService, error) {
+func NewDiscoveryService(config *Config, publishFilePath string, cert *tls.Certificate, httpPort int) (*DiscoveryService, error) {
 	rand.Seed(time.Now().UnixNano())
 
 	disco := &DiscoveryService{
-		httpPort:       httpPort,
-		cfgChan:        make(chan []byte),
-		clientChannels: make(map[string]chan []byte),
+		httpPort:        httpPort,
+		cfgChan:         make(chan []byte),
+		clientChannels:  make(map[string]chan []byte),
+		publishFilePath: publishFilePath,
 	}
 
 	disco.ctx, disco.cancel = context.WithCancel(context.Background())
@@ -88,6 +91,13 @@ loop:
 		select {
 		case data := <-disco.cfgChan:
 			log.Debugf("New snapshot arrived: [%s]", string(data))
+
+			if disco.publishFilePath != "" {
+				err := os.WriteFile(disco.publishFilePath, data, 0644)
+				if err != nil {
+					log.Errorf("Failed to write file location: [%s]", disco.publishFilePath)
+				}
+			}
 
 			disco.mtx.Lock()
 			for clientName, ch := range disco.clientChannels {
