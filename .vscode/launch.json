@@ -15,11 +15,11 @@
                 "--publishFilePath", "sf_discovered.yaml",
                 "--httpport", "7777",
                 "--clusterEndpoint", "http://localhost:19080",
-                "--insecureTLS", "true"
                 //"--clusterEndpoint", "https://darioclus90.southcentralus.cloudapp.azure.com:19080",
+                "--insecureTLS", "true",
+                "--certStoreSearchKey", "darioclientpkcs"
                 //"--certificate", "C:/projects/sf_stuff/traefik/darioclient.crt.pem"
 	            //"--certificateKey", "C:/projects/sf_stuff/traefik/darioclient.key.pem"
-                //"--certStoreSearchKey", "darioclientpkcs"
             ]
         }
 

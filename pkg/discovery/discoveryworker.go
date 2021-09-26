@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"log"
 	"net/http"
 	"net/url"
 	"sort"
@@ -16,6 +15,7 @@ import (
 	"github.com/dariopb/serviceFabricDiscoveryService/pkg/certstorehelper"
 	"github.com/ghodss/yaml"
 	sf "github.com/jjcollinge/servicefabric"
+	log "github.com/sirupsen/logrus"
 	"github.com/traefik/genconf/dynamic"
 	"github.com/traefik/genconf/dynamic/tls"
 )
@@ -79,7 +79,8 @@ func NewDiscoveryWorker(ctx context.Context, config *Config, name string) (*Prov
 		httpEntrypoint:       config.HttpEntrypoint,
 	}
 
-	if config.CertStoreSearchKey != "" || (config.CertificateKey != "" && config.Certificate != "") {
+	if strings.HasPrefix(p.clusterManagementURL, "https") &&
+		(config.CertStoreSearchKey != "" || (config.CertificateKey != "" && config.Certificate != "")) {
 		p.tlsConfig = &certstorehelper.ClientTLS{
 			Cert:               config.Certificate,
 			Key:                config.CertificateKey,

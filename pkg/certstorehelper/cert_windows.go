@@ -7,10 +7,10 @@ import (
 	"crypto/tls"
 	"crypto/x509"
 	"fmt"
-	"log"
 	"strings"
 
 	"github.com/github/certstore"
+	log "github.com/sirupsen/logrus"
 )
 
 func certHasKeyword(c *x509.Certificate, keyword string) bool {
