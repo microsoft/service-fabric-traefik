@@ -592,9 +592,9 @@ func (p *Provider) generateHTTPRuleEntries(epName string, ep []*KVPair, name str
 
 		// add the user provided ones
 		for _, entry := range ep {
-			entry.Key = strings.Replace(entry.Key, "[SERVICE]", name, 1)
-			entry.Value = strings.Replace(entry.Value, "[SERVICE]", name, 1)
-			rules[entry.Key] = entry.Value
+			k := strings.Replace(entry.Key, "[SERVICE]", name, 1)
+			v := strings.Replace(entry.Value, "[SERVICE]", name, 1)
+			rules[k] = v
 		}
 	}
 }
