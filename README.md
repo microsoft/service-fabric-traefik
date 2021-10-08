@@ -1,14 +1,175 @@
-# Project
+# ServiceFabricTraefik 0.1.0-beta
 
-> This repo has been populated by an initial template to help get you started. Please
-> make sure to update the content to build a great experience for community-building.
+The reverse proxy is an application, supplied out of band from the service fabric distribution, that customers deploy to their clusters and handles proxying traffic to backend services. The service, that potentially runs on every node in the cluster, takes care of handling endpoint resolution, automatic retry, and other connection failures on behalf of the clients. The reverse proxy can be configured to apply various policies as it handles requests from client services.
 
-As the maintainer of this project, please make a few updates:
+Using a reverse proxy allows the client service to use any client-side HTTP communication libraries and does not require special resolution and retry logic in the service. The reverse proxy is mostly a terminating endpoint for the TLS connections unless the TCP option is used.
 
-- Improving this README.MD file to provide a great experience
-- Updating SUPPORT.MD with content about this project's support experience
-- Understanding the security reporting process in SECURITY.MD
-- Remove this section from the README
+>Note that, at this time, this is a reverse proxy built-in replacement and not a generic service fabric “gateway” able to handle partition queries, but that might be added (via customer written plugins or similar) in the future.
+
+
+## How it works 
+As of this release, the services need to be explicitly exposed via [service extension labels](), enabling the proxying (HTTP/TCP) functionality for a particular service and endpoint. With the right labels’ setup, the reverse proxy will expose one or more endpoints on the local nodes for client services to use. The ports can then be exposed to the load balancer in order to get the services available outside of the cluster. The required certificates needed should be already deployed to the nodes where the proxy is running as is the case with any other Service Fabric application.
+
+## Using the application  
+
+You can clone the repo, build, and deploy or simply grab the latest [ZIP/SFPKG application](https://github.com/microsoft/service-fabric-traefik/releases/latest) from Releases section, modify configs, and deploy.
+
+![alt text](/Documentation/Images/traefik-cluster-view.png "Cluster View UI")
+
+![alt text](/Documentation/Images/traefik-service-view.png "Cluster Service View UI")
+
+
+## Deploy it using PowerShell  
+
+After either downloading the sfapp package from the releases or clonning the repo and building (code will be up shortly), you need to adjust the configuration settings to meet to your needs (this means changing settings in Settings.xml, ApplicationManifest.xml and any other changes needed for the traefik-template.yaml configuration).
+
+>If you need a quick test cluster, you can deploy a test SF Manager Cluster following the instructions from here: [SFMC](https://docs.microsoft.com/en-us/azure/service-fabric/quickstart-managed-cluster-template), or just deploying one if you already have a client certificate: [Deploy](https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2FAzure-Samples%2Fservice-fabric-cluster-templates%2Fmaster%2FSF-Managed-Basic-SKU-1-NT%2Fazuredeploy.json)
+
+>Retrieve the cluster certificate TP using:  $serverThumbprint = (Get-AzResource -ResourceId /subscriptions/YOUR_SUB/resourceGroups/YOUR_GROUP/providers/Microsoft.ServiceFabric/managedclusters/YOUR_MC_NAME).Properties.clusterCertificateThumbprints
+
+```PowerShell
+
+#cd to the top level directory where you downloaded the package zip
+
+cd \downloads
+
+#Expand the zip file
+
+Expand-Archive .\service-fabric-traefik.zip -Force
+
+#cd to the directory that holds the application package
+
+cd .\service-fabric-traefik\windows\
+
+#create a $appPath variable that points to the application location:
+#E.g., for Windows deployments:
+
+$appPath = "C:\downloads\service-fabric-traefik\windows\traefik"
+
+#For Linux deployments:
+
+#$appPath = "C:\downloads\service-fabric-traefik\linux\traefik"
+
+#Connect to target cluster, for example:
+
+Connect-ServiceFabricCluster -ConnectionEndpoint @('sf-win-cluster.westus2.cloudapp.azure.com:19000') -X509Credential -FindType FindByThumbprint -FindValue '[Client_TP]' -StoreLocation LocalMachine -StoreName 'My' # -ServerCertThumbprint [Server_TP]
+
+# Use this to remove a previous Traefik Application
+#Remove-ServiceFabricApplication -ApplicationName fabric:/traefik -Force
+#Unregister-ServiceFabricApplicationType -ApplicationTypeName TraefikType -ApplicationTypeVersion 1.0.0 -Force
+
+#Copy and register and run the Traefik Application
+Copy-ServiceFabricApplicationPackage -CompressPackage -ApplicationPackagePath $appPath # -ApplicationPackagePathInImageStore traefik
+Register-ServiceFabricApplicationType -ApplicationPathInImageStore traefik
+
+#Fill the right values that are suitable for your cluster (the default ones will run fine with a MC cluster, adjust the placement constrains)
+$p = @{
+    ReverseProxy_InstanceCount="1"
+    ReverseProxy_FetcherEndpoint="7777"
+    ReverseProxy_HttpPort="8080"
+    ReverseProxy_CertificateSearchKeyword=""
+    ClusterEndpoint="https://localhost:19080"
+    CertStoreSearchKey="sfmc"
+    ClientCertificate=""
+    ClientCertificatePK=""
+    ReverseProxy_EnableDashboard="true"
+    #ReverseProxy_PlacementConstraints="NodeType == NT2"
+}
+$p
+New-ServiceFabricApplication -ApplicationName fabric:/traefik -ApplicationTypeName TraefikType -ApplicationTypeVersion 0.1.0-beta -ApplicationParameter $p
+
+
+#OR if updating existing version:  
+
+Start-ServiceFabricApplicationUpgrade -ApplicationName fabric:/traefik -ApplicationTypeVersion 0.1.0-beta -Monitored -FailureAction rollback
+```  
+
+## Add the right labels to your services
+
+### ServiceManifest file
+
+This is a sample SF enabled service showing the currently supported labels. If the sf name is fabric:/pinger/PingerService, the endpoint [endpointName] will be expose at that prefix: '/pinger/PingerService/'
+
+```xml
+  ...
+  <ServiceTypes>
+    <StatelessServiceType ServiceTypeName="PingerServiceType" UseImplicitHost="true">
+      <Extensions>
+        <Extension Name="traefik">
+        <Labels xmlns="http://schemas.microsoft.com/2015/03/fabact-no-schema">
+          <Label Key="traefik.http.defaultEP">true</Label>
+          <Label Key="traefik.http.defaultEP.service.loadbalancer.passhostheader">true</Label>
+          <Label Key="traefik.http.defaultEP.service.loadbalancer.healthcheck.path">/</Label>
+          <Label Key="traefik.http.defaultEP.service.loadbalancer.healthcheck.interval">10s</Label>
+          <Label Key="traefik.http.defaultEP.service.loadbalancer.healthcheck.scheme">http</Label>
+        </Labels>
+        </Extension>
+      </Extensions>
+    </StatelessServiceType>
+  </ServiceTypes>
+  ...
+```
+
+---
+
+The only required label to expose a service via the reverse proxy is the **traefik.http.[endpointName]** set to true. Setting only this label will expose the service on a well known path and handle the basic scenarios.
+
+```
+http(s)://<Cluster FQDN | internal IP>:Port/ApplicationInstanceName/ServiceInstanceName?PartitionGuid=xxxxx
+```
+
+If you need to change the routes or add middleware then you can add different labels configuring them.
+
+
+## Supported Labels
+
+*Http enable section*
+
+* **traefik.http.[endpointName]**    Enables exposing an http service via the reverse proxy ['true']
+
+Router section
+
+* **traefik.http.[endpointName].router.rule**    Traefik rule to apply [PathPrefix(`/dario`))]. This rule is added on top of the default path generation. If this is set, you **have** to define a middleware to remove the prefix for the service to receive the stripped path.
+* **traefik.http.[endpointName].router.tls.options**    Enable TLS on the route ['true'/'false']. T
+
+*Loadbalancer section*
+
+* **traefik.http.[endpointName].loadbalancer.passhostheader**          passhostheaders ['true'/'false']
+* **traefik.http.[endpointName].loadbalancer.healthcheck.path**        Healthcheck endpoint path ['/healtz']
+* **traefik.http.[endpointName].loadbalancer.healthcheck.interval**    Healthcheck interval ['10s']
+* **traefik.http.[endpointName].loadbalancer.healthcheck.scheme**      Healthcheck scheme ['http']
+
+*Middleware section*
+
+* **traefik.http.[endpointName].middlewares.[Yourt_Middleware_Name].stripPrefix.prefixes**    prefix to strip ['/dario']
+
+## Sample Test application
+
+A sample test application can be deployed to test everything is working alright. You should be able to hit it at: https://your-cluster:8080/pinger0/PingerService/id
+
+
+```Powershell
+
+# Sample pinger app for validating (navidate to /pinger0/PingerService/id on https)
+#Remove-ServiceFabricApplication -ApplicationName fabric:/pinger$i -Force
+#Unregister-ServiceFabricApplicationType -ApplicationTypeName PingerApplicationType -ApplicationTypeVersion 1.0 -Force
+
+$appPath = "C:\downloads\service-fabric-traefik\windows\pinger-traefik"
+
+Copy-ServiceFabricApplicationPackage -CompressPackage -ApplicationPackagePath $appPath #-ApplicationPackagePathInImageStore pinger
+Register-ServiceFabricApplicationType -ApplicationPathInImageStore pinger-traefik
+
+$p = @{
+    "Pinger_Instance_Count"="3"
+    "Pinger_Port"="7000"
+    #"Pinger_PlacementConstraints"= "NodeType == NT2"
+}
+
+New-ServiceFabricApplication -ApplicationName fabric:/pinger0 -ApplicationTypeName PingerApplicationType -ApplicationTypeVersion 1.0 -ApplicationParameter $p
+
+
+```
+
 
 ## Contributing
 
