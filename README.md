@@ -21,16 +21,15 @@ You can clone the repo, build, and deploy or simply grab the latest [ZIP/SFPKG a
 
 ## Deploy it using PowerShell  
 
-After either downloading the sfapp package from the releases or clonning the repo and building (code will be up shortly), you need to adjust the configuration settings to meet to your needs (this means changing settings in Settings.xml, ApplicationManifest.xml and any other changes needed for the traefik-template.yaml configuration).
+After either downloading the sfapp package from the releases or cloning the repo and building (code will be up shortly), you need to adjust the configuration settings to meet to your needs (this means changing settings in Settings.xml, ApplicationManifest.xml and any other changes needed for the traefik-template.yaml configuration).
 
->If you need a quick test cluster, you can deploy a test SF Manager Cluster following the instructions from here: [SFMC](https://docs.microsoft.com/en-us/azure/service-fabric/quickstart-managed-cluster-template), or just deploying one if you already have a client certificate: [Deploy](https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2FAzure-Samples%2Fservice-fabric-cluster-templates%2Fmaster%2FSF-Managed-Basic-SKU-1-NT%2Fazuredeploy.json)
+>If you need a quick test cluster, you can deploy a test Service Fabric managed cluster following the instructions from here: [SFMC](https://docs.microsoft.com/en-us/azure/service-fabric/quickstart-managed-cluster-template), or via this template if you already have a client certificate and thumbprint available: [Deploy](https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2FAzure-Samples%2Fservice-fabric-cluster-templates%2Fmaster%2FSF-Managed-Basic-SKU-1-NT%2Fazuredeploy.json)
 
->Retrieve the cluster certificate TP using:  $serverThumbprint = (Get-AzResource -ResourceId /subscriptions/YOUR_SUB/resourceGroups/YOUR_GROUP/providers/Microsoft.ServiceFabric/managedclusters/YOUR_MC_NAME).Properties.clusterCertificateThumbprints
+>Retrieve the cluster certificate TP using:  $serverThumbprint = (Get-AzResource -ResourceId /subscriptions/$SUBSCRIPTION/resourceGroups/$RESOURCEGROUP/providers/Microsoft.ServiceFabric/managedclusters/$CLUSTERNAME).Properties.clusterCertificateThumbprints
 
 ```PowerShell
 
 #cd to the top level directory where you downloaded the package zip
-
 cd \downloads
 
 #Expand the zip file
@@ -62,7 +61,7 @@ Connect-ServiceFabricCluster -ConnectionEndpoint @('sf-win-cluster.westus2.cloud
 Copy-ServiceFabricApplicationPackage -CompressPackage -ApplicationPackagePath $appPath # -ApplicationPackagePathInImageStore traefik
 Register-ServiceFabricApplicationType -ApplicationPathInImageStore traefik
 
-#Fill the right values that are suitable for your cluster (the default ones will run fine with a MC cluster, adjust the placement constrains)
+#Fill the right values that are suitable for your cluster and application (the default ones below will work without modification if you used a Service Fabric managed cluster Quickstart template with one node type. Adjust the placement constraints to use other node types)
 $p = @{
     ReverseProxy_InstanceCount="1"
     ReverseProxy_FetcherEndpoint="7777"
@@ -145,7 +144,9 @@ Router section
 
 ## Sample Test application
 
-A sample test application can be deployed to test everything is working alright. You should be able to hit it at: https://your-cluster:8080/pinger0/PingerService/id
+A sample test application, that is included in the release, can be deployed to test everything is working alright. After deployment, you should be able to hit it at:
+
+https://your-cluster:8080/pinger0/PingerService/id
 
 
 ```Powershell
@@ -156,7 +157,7 @@ A sample test application can be deployed to test everything is working alright.
 
 $appPath = "C:\downloads\service-fabric-traefik\windows\pinger-traefik"
 
-Copy-ServiceFabricApplicationPackage -CompressPackage -ApplicationPackagePath $appPath #-ApplicationPackagePathInImageStore pinger
+Copy-ServiceFabricApplicationPackage -CompressPackage -ApplicationPackagePath $appPath -ApplicationPackagePathInImageStore pinger-traefik
 Register-ServiceFabricApplicationType -ApplicationPathInImageStore pinger-traefik
 
 $p = @{
