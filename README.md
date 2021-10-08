@@ -21,11 +21,11 @@ You can clone the repo, build, and deploy or simply grab the latest [ZIP/SFPKG a
 
 ## Deploy it using PowerShell  
 
-After either downloading the sfapp package from the releases or clonning the repo and building (code will be up shortly), you need to adjust the configuration settings to meet to your needs (this means changing settings in Settings.xml, ApplicationManifest.xml and any other changes needed for the traefik-template.yaml configuration).
+After either downloading the sfapp package from the releases or cloning the repo and building (code will be up shortly), you need to adjust the configuration settings to meet to your needs (this means changing settings in Settings.xml, ApplicationManifest.xml and any other changes needed for the traefik-template.yaml configuration).
 
->If you need a quick test cluster, you can deploy a test SF Manager Cluster following the instructions from here: [SFMC](https://docs.microsoft.com/en-us/azure/service-fabric/quickstart-managed-cluster-template), or just deploying one if you already have a client certificate: [Deploy](https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2FAzure-Samples%2Fservice-fabric-cluster-templates%2Fmaster%2FSF-Managed-Basic-SKU-1-NT%2Fazuredeploy.json)
+>If you need a quick test cluster, you can deploy a test Service Fabric managed cluster following the instructions from here: [SFMC](https://docs.microsoft.com/en-us/azure/service-fabric/quickstart-managed-cluster-template), or via this template if you already have a client certificate and thumbprint available: [Deploy](https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2FAzure-Samples%2Fservice-fabric-cluster-templates%2Fmaster%2FSF-Managed-Basic-SKU-1-NT%2Fazuredeploy.json)
 
->Retrieve the cluster certificate TP using:  $serverThumbprint = (Get-AzResource -ResourceId /subscriptions/YOUR_SUB/resourceGroups/YOUR_GROUP/providers/Microsoft.ServiceFabric/managedclusters/YOUR_MC_NAME).Properties.clusterCertificateThumbprints
+>Retrieve the cluster certificate TP using:  $serverThumbprint = (Get-AzResource -ResourceId /subscriptions/<SUBSCRIPTION>/resourceGroups/<RESOURCEGROUP>/providers/Microsoft.ServiceFabric/managedclusters/<name>).Properties.clusterCertificateThumbprints
 
 ```PowerShell
 
