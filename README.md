@@ -148,6 +148,8 @@ A sample test application, that is included in the release, can be deployed to t
 
 https://your-cluster:8080/pinger0/PingerService/id
 
+>Note that the service is going to be exposed on https since the service has a label for the route.tls option. You can explore that looking at the service manifest for this app.
+
 
 ```Powershell
 
