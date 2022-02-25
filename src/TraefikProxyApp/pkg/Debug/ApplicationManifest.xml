@@ -1,0 +1,62 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ApplicationManifest ApplicationTypeName="TraefikType" ApplicationTypeVersion="0.1.0-beta" xmlns="http://schemas.microsoft.com/2011/01/fabric" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" ___CorrelationId___="fb46565c-4607-46bc-8421-f5c277d33b62" ManifestId="fb46565c-4607-46bc-8421-f5c277d33b62">
+  <Parameters>
+    <Parameter Name="ReverseProxy_InstanceCount" DefaultValue="1" />
+    <Parameter Name="ReverseProxy_HttpPort" DefaultValue="9999" />
+    <Parameter Name="ReverseProxy_CertificateSearchKeyword" DefaultValue="" />
+    <Parameter Name="ClusterEndpoint" DefaultValue="https://localhost:19080" />
+    <Parameter Name="ClientCertificate" DefaultValue="" />
+    <Parameter Name="ClientCertificatePK" DefaultValue="" />
+    <!--<Parameter Name="CertStoreSearchKey" DefaultValue="cloudapp" />-->
+    <Parameter Name="CertStoreSearchKey" DefaultValue="" />
+    <Parameter Name="ReverseProxy_FetcherEndpoint" DefaultValue="7777" />
+    <Parameter Name="ReverseProxy_EnableDashboard" DefaultValue="true" />
+    <Parameter Name="ReverseProxy_PlacementConstraints" DefaultValue="" />
+  </Parameters>
+  <!-- Import the ServiceManifest from the ServicePackage. The ServiceManifestName and ServiceManifestVersion 
+       should match the Name and Version attributes of the ServiceManifest element defined in the 
+       ServiceManifest.xml file. -->
+  <ServiceManifestImport>
+    <ServiceManifestRef ServiceManifestName="TraefikPkg" ServiceManifestVersion="0.1.0-beta" />
+    <ConfigOverrides />
+    <ResourceOverrides>
+      <Endpoints>
+        <Endpoint Name="ReverseProxyEndpoint0" Port="[ReverseProxy_HttpPort]" UriScheme="http" />
+        <Endpoint Name="FetcherEndpoint" Port="[ReverseProxy_FetcherEndpoint]" UriScheme="http" />
+      </Endpoints>
+    </ResourceOverrides>
+    <EnvironmentOverrides CodePackageRef="Code">
+      <EnvironmentVariable Name="TRAEFIK_HTTP_PORT" Value="[ReverseProxy_HttpPort]" />
+      <EnvironmentVariable Name="TRAEFIK_CERTIFICATE_NATIVE_STORE_SEARCH_KEYWORD" Value="[ReverseProxy_CertificateSearchKeyword]" />
+      <EnvironmentVariable Name="TRAEFIK_ENABLE_DASHBOARD" Value="[ReverseProxy_EnableDashboard]" />
+    </EnvironmentOverrides>
+    <EnvironmentOverrides CodePackageRef="Fetcher.Code">
+      <EnvironmentVariable Name="CLUSTER_ENDPOINT" Value="[ClusterEndpoint]" />
+      <EnvironmentVariable Name="CLIENT_CERT" Value="[ClientCertificate]" />
+      <EnvironmentVariable Name="CLIENT_CERT_PK" Value="[ClientCertificatePK]" />
+      <EnvironmentVariable Name="CLUSTER_CERT_SEARCH_KEY" Value="[CertStoreSearchKey]" />
+      <EnvironmentVariable Name="HTTP_PORT" Value="[ReverseProxy_FetcherEndpoint]" />
+    </EnvironmentOverrides>
+    <Policies>
+      <RunAsPolicy CodePackageRef="Code" UserRef="AdminUser" EntryPointType="All" />
+      <RunAsPolicy CodePackageRef="Fetcher.Code" UserRef="AdminUser" EntryPointType="All" />
+    </Policies>
+  </ServiceManifestImport>
+  <DefaultServices>
+    <Service Name="Traefik" ServicePackageActivationMode="ExclusiveProcess">
+      <StatelessService ServiceTypeName="TraefikType" InstanceCount="[ReverseProxy_InstanceCount]">
+        <SingletonPartition />
+        <PlacementConstraints>[ReverseProxy_PlacementConstraints]</PlacementConstraints>
+      </StatelessService>
+    </Service>
+  </DefaultServices>
+  <Principals>
+    <Users>
+      <User Name="AdminUser">
+        <MemberOf>
+          <SystemGroup Name="Administrators" />
+        </MemberOf>
+      </User>
+    </Users>
+  </Principals>
+</ApplicationManifest>

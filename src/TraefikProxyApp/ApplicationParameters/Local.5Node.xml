@@ -1,0 +1,14 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Application Name="fabric:/TraefikProxyApp" xmlns="http://schemas.microsoft.com/2011/01/fabric" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <Parameters>
+	  <Parameter Name="ReverseProxy_InstanceCount" Value="1" />
+	  <Parameter Name="ReverseProxy_FetcherEndpoint" Value="7777" />
+	  <Parameter Name="ReverseProxy_HttpPort" Value="9999" />
+	  <Parameter Name="ReverseProxy_CertificateSearchKeyword" Value="" />
+	  <Parameter Name="ClusterEndpoint" Value="http://localhost:19080" />
+	  <Parameter Name="CertStoreSearchKey" Value="" />
+	  <Parameter Name="ClientCertificate" Value="" />
+	  <Parameter Name="ClientCertificatePK" Value="" />
+	  <Parameter Name="ReverseProxy_EnableDashboard" Value="true" />
+  </Parameters>
+</Application>

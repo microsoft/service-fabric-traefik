@@ -1,0 +1,21 @@
+entryPoints:
+  web:
+    address: :<TRAEFIK_HTTP_PORT>
+#  tcp1:
+#    address: :9998
+
+api:
+  dashboard: <TRAEFIK_ENABLE_DASHBOARD>
+
+log:
+  level: DEBUG
+#  filepath: logs
+
+pilot:
+    token: "add-your-own-traefik-pilot-token"
+
+providers:
+  file:
+    directory: <Fabric_Folder_App_Work>
+    watch: "true"
+
