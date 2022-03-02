@@ -1,0 +1,57 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ServiceManifest Name="TraefikPkg" Version="0.1.0-beta" xmlns="http://schemas.microsoft.com/2011/01/fabric" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <ServiceTypes>
+    <StatelessServiceType ServiceTypeName="TraefikType" UseImplicitHost="true" />
+  </ServiceTypes>
+  <!-- Treefik -->
+  <CodePackage Name="Code" Version="0.1.0-beta">
+    <SetupEntryPoint>
+      <ExeHost IsExternalExecutable="false">
+        <Program>setup_traefik.sh</Program>
+        <Arguments></Arguments>
+        <WorkingFolder>CodePackage</WorkingFolder>
+        <ConsoleRedirection FileRetentionCount="1" FileMaxSizeInKb="1024"/>
+      </ExeHost>
+    </SetupEntryPoint>
+    <EntryPoint>
+      <ExeHost>
+        <Program>traefik.sh</Program>
+        <Arguments>--configFile=../traefik.yaml</Arguments>
+        <WorkingFolder>CodePackage</WorkingFolder>
+        <ConsoleRedirection FileRetentionCount="5" FileMaxSizeInKb="2048" />
+      </ExeHost>
+    </EntryPoint>
+    <EnvironmentVariables>
+      <EnvironmentVariable Name="TRAEFIK_HTTP_PORT" Value="9999" />
+      <EnvironmentVariable Name="TRAEFIK_CERTIFICATE_NATIVE_STORE_SEARCH_KEYWORD" Value="" />
+      <EnvironmentVariable Name="TRAEFIK_ENABLE_DASHBOARD" Value="false" />
+    </EnvironmentVariables>
+  </CodePackage>
+
+  <!-- Fetcher -->
+  <CodePackage Name="Fetcher.Code" Version="0.1.0-beta">
+    <EntryPoint>
+      <ExeHost IsExternalExecutable="false">
+        <Program>server.sh</Program>
+        <Arguments>run -i</Arguments>
+        <ConsoleRedirection FileRetentionCount="5" FileMaxSizeInKb="2048"/>
+      </ExeHost>
+    </EntryPoint>
+    <EnvironmentVariables>
+      <EnvironmentVariable Name="HTTP_PORT" Value="7777" />
+      <EnvironmentVariable Name="CLUSTER_ENDPOINT" Value="http://localhost:19080" />
+      <EnvironmentVariable Name="CLIENT_CERT" Value="" />
+      <EnvironmentVariable Name="CLIENT_CERT_PK" Value="" />
+      <EnvironmentVariable Name="CLUSTER_CERT_SEARCH_KEY" Value="" />
+      <EnvironmentVariable Name="PUBLISH_FILE_PATH" Value="../work/sf_discovered.yaml" />
+    </EnvironmentVariables>
+  </CodePackage>
+
+  <ConfigPackage Name="Config" Version="0.1.0-beta" />
+  <Resources>
+    <Endpoints>
+      <Endpoint Name="ReverseProxyEndpoint0" UriScheme="http" CodePackageRef="Code" />
+      <Endpoint Name="FetcherEndpoint" UriScheme="http" CodePackageRef="Fetcher.Code"/>
+    </Endpoints>
+  </Resources>
+</ServiceManifest>

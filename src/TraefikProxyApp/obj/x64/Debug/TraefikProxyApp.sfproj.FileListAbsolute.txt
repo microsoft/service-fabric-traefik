@@ -1,3 +1,0 @@
-C:\Users\egaribay\Desktop\TraefikSF\TraefikProxyApp\obj\x64\Debug\TraefikProxyApp.sfproj.CoreCompileInputs.cache
-C:\Users\egaribay\Desktop\service-fabric-traefik\src\TraefikProxyApp\obj\x64\Debug\TraefikProxyApp.sfproj.CoreCompileInputs.cache
-C:\Users\egaribay\source\repos\service-fabric-traefik\src\TraefikProxyApp\obj\x64\Debug\TraefikProxyApp.sfproj.CoreCompileInputs.cache

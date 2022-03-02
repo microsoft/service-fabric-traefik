@@ -4,7 +4,7 @@
   <PropertyGroup Label="Globals">
     <ProjectGuid>fb46565c-4607-46bc-8421-f5c277d33b62</ProjectGuid>
     <ProjectVersion>2.6</ProjectVersion>
-    <MinToolsVersion>16.10</MinToolsVersion>
+    <MinToolsVersion>1.5</MinToolsVersion>
     <SupportedMSBuildNuGetPackageVersion>1.7.6</SupportedMSBuildNuGetPackageVersion>
     <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
   </PropertyGroup>

@@ -1,10 +1,11 @@
 ﻿#
 # Simple script to pull down the Traefik Binary for deployment. 
-# Overwride URL to upgrade versions to new Binary
+# Specify the Traefik version and fileName to retrieve from releases
 # 
 
 param(
-    [string]$version
+    [string]$version,
+    [string]$fileName
 )
 
 while (!($version)) {
@@ -14,26 +15,57 @@ while (!($version)) {
     $version = Read-Host 
 }
 
+while (!($fileName)) {
+    Write-Host "Review current Traefik OS and Architecture support for Traefik $version :" -foregroundcolor Green
+    Write-Host "https://github.com/containous/traefik/releases/$version"
+    Write-Host "Please provide the file name (e.g. 'traefik_v2.6.1_windows_amd64.zip' or 'traefik_v2.6.1_linux_amd64.tar.gz') of the Traefik release you wish to download: " -foregroundcolor Green -NoNewline
+    $fileName = Read-Host 
+}
+
+$isWindows = If ($fileName.Contains("windows")) {$true} Else {$false}
+
 #Github and other sites now require tls1.2 without this line the script will fail with an SSL error. 
 [Net.ServicePointManager]::SecurityProtocol = "tls12, tls11, tls"
 
-$traefikBaseUrl = "https://github.com/containous/traefik/releases/download/"
-$url = $traefikBaseUrl + $version + "/traefik_windows-amd64.exe"
+$traefikBaseUrl = "https://github.com/traefik/traefik/releases/download/"
+$url = $traefikBaseUrl + $version + "/" + $fileName
 
 Write-Host "Downloading Traefik Binary from: " -foregroundcolor Green
 Write-Host $url
 
-$traefikPath = "/../ApplicationPackageRoot/TraefikPkg/Code/traefik.exe"
-$treafikWatchdogPath = "/../ApplicationPackageRoot/Watchdog/Code/traefik-appinsights-watchdog.exe"
-$outfile = Join-Path $PSScriptRoot $traefikPath
-$outfileWatchdog = Join-Path $PSScriptRoot $treafikWatchdogPath
+$traefikPath = "/../ApplicationPackageRoot/TraefikPkg/Code"
+$outfile = $PSScriptRoot + "/" + $fileName
 
+Write-Host "Downloading zip file" -foregroundcolor Green
 Invoke-WebRequest -Uri $url -OutFile $outfile -UseBasicParsing
-
 Write-Host "Download complete, files:" -foregroundcolor Green
 Write-Host $outfile
-Write-Host $outfileWatchdog
 
-Write-Host "Traefik version downloaded:" -foregroundcolor Green
 
-& $outfile version
+#curl.exe -LO $url #unable to specify output location. Zip folder is saved where script is located. need to move to appropriate path afterwards
+#& $outfile version 
+
+Write-Host Extracting release files -foregroundcolor Green
+
+if ($isWindows){
+    Expand-Archive $fileName -Force
+
+    $name = $fileName.Replace(".zip","")
+    $traefikExePath = $PSScriptRoot + "/" + $name + "/" + "traefik.exe"
+    Move-Item $traefikExePath -Destination $PSScriptRoot/$traefikPath -Force
+
+    #Removing temp files
+    Remove-Item $fileName -Force
+    Remove-Item $name -Recurse -Force
+} else{
+    tar -xvzf $fileName -C . 
+    $name = $fileName.Replace(".tar.gz","")
+    $traefikExePath = $PSScriptRoot + "/" + "traefik"
+    Move-Item $traefikExePath -Destination $PSScriptRoot/$traefikPath -Force
+    
+    # Removing temp files
+    Remove-Item "CHANGELOG.md" -Force
+    Remove-Item "LICENSE.md" -Force
+    Remove-Item $fileName -Force
+
+}
