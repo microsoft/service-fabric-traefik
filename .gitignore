@@ -1,6 +1,6 @@
 # Binaries for programs and plugins
-*.exe
-*.exe~
+#*.exe
+#*.exe~
 *.dll
 *.so
 *.dylib
@@ -14,7 +14,82 @@
 # Dependency directories (remove the comment below to include it)
 # vendor/
 
-# VS studio
-/.vs
+# Build outputs
+out/
+[Bb]in/
+[Oo]bj/
+[Ll]og/
+[Pp]kg/
+TestResults/
+
+# Restored packages
+packages/
+.packages/
+
+# VS temporary files
 .vs/
-*.suo
+*.user
+
+# *.pfx
+*.[Pp][Ff][Xx]
+
+# *.key
+*.[Kk][Ee][Yy]
+
+# *.sst
+*.[Ss][Ss][Tt]
+
+# *.p12
+*.[Pp]12
+
+# *.pvk
+*.[Pp][Vv][Kk]
+
+# wdsconfig.xml
+[Ww][Dd][Ss][Cc][Oo][Nn][Ff][Ii][Gg].[Xx][Mm][Ll]
+
+# wdsdeploy.xml
+[Ww][Dd][Ss][Dd][Ee][Pp][Ll][Oo][Yy].[Xx][Mm][Ll]
+
+# accounts.xml
+[Aa][Cc][Cc][Oo][Uu][Nn][Tt][Ss].[Xx][Mm][Ll]
+
+# deploymentsecrets.xml
+[Dd][Ee][Pp][Ll][Oo][Yy][Mm][Ee][Nn][Tt][Ss][Ee][Cc][Rr][Ee][Tt][Ss].[Xx][Mm][Ll]
+[Ss][Yy][Ss][Pp][Rr][Ee][Pp].[Ii][Nn][Ff]
+
+# Unix tools, Vim/Emacs included
+*~
+*.swp
+
+# Office
+~$*
+
+###
+
+# Repository Bloat Risks
+*.7[Zz]
+*.[Bb][Ii][Nn]
+*.[Cc][Aa][Bb]
+*.[Dd][Ll][Ll]
+*.[Dd][Mm][Pp]
+*.[Ee][Tt][Ll]
+#*.[Ee][Xx][Ee]
+*.[Gg][Zz]
+*.[Ll][Ii][Bb]
+*.[Mm][Ss][Ii]
+*.[Mm][Ss][Uu]
+*.[Nn][Uu][Pp][Kk][Gg]
+*.[Pp][Dd][Bb]
+*.[Rr][Aa][Rr]
+*.[Ss][Oo]
+*.[Vv][Hh][Dd]
+*.[Ww][Ii][Mm]
+*.[Zz][Ii][Pp]
+
+# Build logs
+msbuild*.*log
+
+# Ignore compiled text templates.
+*.g.ps1
+*.pt.ps1
