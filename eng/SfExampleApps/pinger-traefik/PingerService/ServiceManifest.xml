@@ -1,0 +1,48 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ServiceManifest Name="PingerService"
+                 Version="1.0"
+                 xmlns="http://schemas.microsoft.com/2011/01/fabric"
+                 xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+                 xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <ServiceTypes>
+    <StatelessServiceType ServiceTypeName="PingerServiceType" UseImplicitHost="true">
+      <Extensions>
+        <Extension Name="traefik">
+          <Labels xmlns="http://schemas.microsoft.com/2015/03/fabact-no-schema">
+            <Label Key="traefik.http.PingerEndpoint0">true</Label>
+            <!--<Label Key="traefik.http.PingerEndpoint0.router.rule">PathPrefix(`/pinger`)</Label> -->
+            <!--<Label Key="traefik.http.PingerEndpoint0.middlewares.1.stripPrefix.prefixes">/pinger</Label> -->
+            <Label Key="traefik.http.PingerEndpoint0.router.tls.options">true</Label>
+            <Label Key="traefik.http.PingerEndpoint0.service.loadbalancer.healthcheck.path">/</Label>
+            <Label Key="traefik.http.PingerEndpoint0.service.loadbalancer.healthcheck.interval">10s</Label>
+            <Label Key="traefik.http.PingerEndpoint0.service.loadbalancer.healthcheck.scheme">http</Label>
+
+            <Label Key="traefik.tcp.PingerEndpoint0">true</Label>
+            <Label Key="traefik.tcp.PingerEndpoint0.router.entryPoints">tcp1</Label>
+            <!-- <Label Key="traefik.tcp.PingerEndpoint0.router.rule">HostSNI(`www.myservice.com`)</Label> -->
+          </Labels>
+        </Extension>
+      </Extensions>
+    </StatelessServiceType>
+  </ServiceTypes>
+
+  <!-- Pinger -->
+  <CodePackage Name="Pinger.Code" Version="1.0">
+    <EntryPoint>
+      <ExeHost IsExternalExecutable="false">
+        <Program>pinger.exe</Program>
+        <Arguments></Arguments>
+        <ConsoleRedirection FileRetentionCount="5" FileMaxSizeInKb="2048"/>
+      </ExeHost>
+    </EntryPoint>
+    <EnvironmentVariables>
+      <EnvironmentVariable Name="PORT" Value="" />
+    </EnvironmentVariables>
+  </CodePackage>
+
+  <Resources>
+    <Endpoints>
+      <Endpoint Name="PingerEndpoint0" CodePackageRef="Pinger.Code" UriScheme="http" />
+    </Endpoints>
+  </Resources>
+  </ServiceManifest>

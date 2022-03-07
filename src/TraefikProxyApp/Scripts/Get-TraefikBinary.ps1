@@ -41,31 +41,30 @@ Invoke-WebRequest -Uri $url -OutFile $outfile -UseBasicParsing
 Write-Host "Download complete, files:" -foregroundcolor Green
 Write-Host $outfile
 
-
-#curl.exe -LO $url #unable to specify output location. Zip folder is saved where script is located. need to move to appropriate path afterwards
-#& $outfile version 
-
 Write-Host Extracting release files -foregroundcolor Green
 
+#Files to delete after expanding zip file
+$changeLog = "$PSScriptRoot" + "/" + "CHANGELOG.md"
+$license = "$PSScriptRoot" + "/" + "LICENSE.md"
 if ($isWindows){
-    Expand-Archive $fileName -Force
-
-    $name = $fileName.Replace(".zip","")
-    $traefikExePath = $PSScriptRoot + "/" + $name + "/" + "traefik.exe"
+    Expand-Archive -Path $PSScriptRoot/$fileName -DestinationPath $PSScriptRoot  -Force
+    #$name = $fileName.Replace(".zip","")
+    #$traefikExePath = $PSScriptRoot + "/" + $name + "/" + "traefik.exe"
+    $traefikExePath = $PSScriptRoot + "/" + "traefik.exe"
     Move-Item $traefikExePath -Destination $PSScriptRoot/$traefikPath -Force
-
+  
     #Removing temp files
-    Remove-Item $fileName -Force
-    Remove-Item $name -Recurse -Force
+    Remove-Item $PSScriptRoot/$fileName -Force
+    #Remove-Item $PSScriptRoot/$name -Recurse -Force
+    Remove-Item $changeLog -Force
+    Remove-Item $license -Force
 } else{
-    tar -xvzf $fileName -C . 
-    $name = $fileName.Replace(".tar.gz","")
+    tar -xvzf $PSScriptRoot/$fileName -C $PSScriptRoot
+    #$name = $fileName.Replace(".tar.gz","")
     $traefikExePath = $PSScriptRoot + "/" + "traefik"
     Move-Item $traefikExePath -Destination $PSScriptRoot/$traefikPath -Force
-    
     # Removing temp files
-    Remove-Item "CHANGELOG.md" -Force
-    Remove-Item "LICENSE.md" -Force
-    Remove-Item $fileName -Force
-
+    Remove-Item $PSScriptRoot/$fileName -Force
+    Remove-Item $changeLog -Force
+    Remove-Item $license -Force
 }

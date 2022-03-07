@@ -23,7 +23,7 @@ pilot:
 providers:
   file:
     directory: "dynConfig"
-    watch: "true"
+    watch: true
 
 #  plugin:
 #    sf:

@@ -10,7 +10,7 @@
         <Program>powershell.exe</Program>
         <Arguments>-executionpolicy bypass -file "setup.ps1"</Arguments>
         <WorkingFolder>CodePackage</WorkingFolder>
-        <ConsoleRedirection FileRetentionCount="1" FileMaxSizeInKb="1024"/>
+        <ConsoleRedirection FileRetentionCount="1" FileMaxSizeInKb="1024" />
       </ExeHost>
     </SetupEntryPoint>
     <EntryPoint>
@@ -27,14 +27,13 @@
       <EnvironmentVariable Name="TRAEFIK_ENABLE_DASHBOARD" Value="false" />
     </EnvironmentVariables>
   </CodePackage>
-
   <!-- Fetcher -->
   <CodePackage Name="Fetcher.Code" Version="0.1.0-beta">
     <EntryPoint>
       <ExeHost IsExternalExecutable="false">
         <Program>server.exe</Program>
         <Arguments>run -i</Arguments>
-        <ConsoleRedirection FileRetentionCount="5" FileMaxSizeInKb="2048"/>
+        <ConsoleRedirection FileRetentionCount="5" FileMaxSizeInKb="2048" />
       </ExeHost>
     </EntryPoint>
     <EnvironmentVariables>
@@ -46,7 +45,6 @@
       <EnvironmentVariable Name="PUBLISH_FILE_PATH" Value="..\work\sf_discovered.yaml" />
     </EnvironmentVariables>
   </CodePackage>
-
   <ConfigPackage Name="Config" Version="0.1.0-beta" />
   <Resources>
     <Endpoints>

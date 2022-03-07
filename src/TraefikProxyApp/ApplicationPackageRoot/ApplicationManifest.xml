@@ -7,8 +7,7 @@
 		<Parameter Name="ClusterEndpoint" DefaultValue="https://localhost:19080" />
 		<Parameter Name="ClientCertificate" DefaultValue="" />
 		<Parameter Name="ClientCertificatePK" DefaultValue="" />
-		<!--<Parameter Name="CertStoreSearchKey" DefaultValue="cloudapp" />-->
-		<Parameter Name="CertStoreSearchKey" DefaultValue="" />
+		<Parameter Name="CertStoreSearchKey" DefaultValue="cloudapp" />
 		<Parameter Name="ReverseProxy_FetcherEndpoint" DefaultValue="7777" />
 		<Parameter Name="ReverseProxy_EnableDashboard" DefaultValue="true" />
 		<Parameter Name="ReverseProxy_PlacementConstraints" DefaultValue="" />
