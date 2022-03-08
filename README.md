@@ -1,4 +1,4 @@
-# ServiceFabricTraefik 0.1.0-beta
+# ServiceFabricTraefik 1.0.0
 
 The reverse proxy is an application, supplied out of band from the service fabric distribution, that customers deploy to their clusters and handles proxying traffic to backend services. The service, that potentially runs on every node in the cluster, takes care of handling endpoint resolution, automatic retry, and other connection failures on behalf of the clients. The reverse proxy can be configured to apply various policies as it handles requests from client services.
 
@@ -43,11 +43,11 @@ cd .\service-fabric-traefik\windows\
 #create a $appPath variable that points to the application location:
 #E.g., for Windows deployments:
 
-$appPath = "C:\downloads\service-fabric-traefik\windows\traefik"
+$appPath = "C:\downloads\service-fabric-traefik\windows\TraefikProxyApp"
 
 #For Linux deployments:
 
-#$appPath = "C:\downloads\service-fabric-traefik\linux\traefik"
+#$appPath = "C:\downloads\service-fabric-traefik\linux\TraefikProxyApp"
 
 #Connect to target cluster, for example:
 
@@ -75,12 +75,12 @@ $p = @{
     #ReverseProxy_PlacementConstraints="NodeType == NT2"
 }
 $p
-New-ServiceFabricApplication -ApplicationName fabric:/traefik -ApplicationTypeName TraefikType -ApplicationTypeVersion 0.1.0-beta -ApplicationParameter $p
+New-ServiceFabricApplication -ApplicationName fabric:/traefik -ApplicationTypeName TraefikType -ApplicationTypeVersion 1.0.0 -ApplicationParameter $p
 
 
 #OR if updating existing version:  
 
-Start-ServiceFabricApplicationUpgrade -ApplicationName fabric:/traefik -ApplicationTypeVersion 0.1.0-beta -Monitored -FailureAction rollback
+Start-ServiceFabricApplicationUpgrade -ApplicationName fabric:/traefik -ApplicationTypeVersion 1.0.0 -Monitored -FailureAction rollback
 ```  
 
 ## Add the right labels to your services
@@ -175,14 +175,6 @@ New-ServiceFabricApplication -ApplicationName fabric:/pinger0 -ApplicationTypeNa
 
 # Traefik Reverse Proxy for Service Fabric Integration
 
-## Building & Getting latest Executable
-
-1. go build .\cmd\server -> server.exe
-2. Get latest traefik.exe from [traefik github page](https://github.com/traefik/traefik/releases) depending on your
-
-Alternatively, you can also open `TraefikSF.sln` at the root of the repo with Visual Studio 2019.
-Running builds and deploying to local or remote SF clusters.
-
 ## Project Structure
 
 This repo includes:
@@ -190,6 +182,19 @@ This repo includes:
 * `TraefikProxyApp`: an example Service Fabric application, consisting of:
   * `server.exe`: The guest executable that fetches endpoint information from Service Fabric that are configured to use Traefik via Service Manifest Extensions, and exposes the summarized configurations for `traefik.exe` to consume in real-time
   * `traefik.exe`: The guest executable that implements a Reverse Proxy using Traefik. It reads configuration fetched from server.exe
+
+## Building & Getting latest Executable
+
+1. At the moment application package comes with server.exe, which includes latest serviceFabricDiscovery changes. Can also add changes to serviceFabricDiscoveryService and then manually build binary. Use similar steps mentioned under method 2:Using go [Building and Testing - Traefik](https://doc.traefik.io/traefik/contributing/building-testing/#build-traefik), to build server (e.g "go build .\cmd\server"). Once the server executable has been built, replace the default executable under ./src/TraefikProxyApp/ApplicationPackageRoot/TraefikPkg/Fetcher.Code
+
+2. Get latest traefik.exe from [traefik github page](https://github.com/traefik/traefik/releases) and place under ./src/TraefikProxyApp/ApplicationPackageRoot/TraefikPkg/Code
+
+
+## Updating manifest file
+TraefikProxyApp comes with an ApplicationManifest and ServiceManifest for both windows and linux. By default the .xml files contains the content for a windows cluster deployment. For a linux deployment need to replace with the linux xml content.
+
+Also, you can open `TraefikSF.sln` at the root of the repo with Visual Studio 2019.
+Running builds and deploying to local or remote SF clusters instead of using local powershell prompt.
 
 ## serviceFabricDiscoveryService
 serviceFabricDiscoveryService is a service that connects to a Service Fabric cluster and exposes discovery data and changes [async] over websockets or, locally, via a file. Changes on names (applications/services) and endpoint mapping information is sent as messages over the websocket as they happen, the client doesn't have to poll the server.
@@ -239,7 +244,7 @@ This route exposes a stream of Traefik 2.x compatible yaml data that can be fed 
 
 ## Running Locally
 
-* Deploy `YarpProxyApp` to the local cluster
+* Deploy `TraefikProxyApp` to the local cluster
 * Deploy the pinger test application mentioned in [Sample-Test-Application](#sample-test-application). Using a browser, access `https://localhost/pinger0/PingerService`. If all works, you should get a `200 OK` response with contents resembling the following:
 
    ```json
