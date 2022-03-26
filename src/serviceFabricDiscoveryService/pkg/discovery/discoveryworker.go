@@ -12,9 +12,9 @@ import (
 	"time"
 	"unicode"
 
-	"github.com/dariopb/serviceFabricDiscoveryService/pkg/certstorehelper"
 	"github.com/ghodss/yaml"
 	sf "github.com/jjcollinge/servicefabric"
+	"github.com/microsoft/service-fabric-traefik/serviceFabricDiscoveryService/pkg/certstorehelper"
 	log "github.com/sirupsen/logrus"
 	"github.com/traefik/genconf/dynamic"
 	"github.com/traefik/genconf/dynamic/tls"

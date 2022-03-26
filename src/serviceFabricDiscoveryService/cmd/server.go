@@ -7,12 +7,12 @@ import (
 	"runtime"
 	"syscall"
 
-	disco "github.com/dariopb/serviceFabricDiscoveryService/pkg/discovery"
-	restapi "github.com/dariopb/serviceFabricDiscoveryService/pkg/restapi"
-	version "github.com/dariopb/serviceFabricDiscoveryService/version"
+	disco "github.com/microsoft/service-fabric-traefik/serviceFabricDiscoveryService/pkg/discovery"
+	restapi "github.com/microsoft/service-fabric-traefik/serviceFabricDiscoveryService/pkg/restapi"
+	version "github.com/microsoft/service-fabric-traefik/serviceFabricDiscoveryService/version"
 
 	log "github.com/sirupsen/logrus"
-	"github.com/urfave/cli/v2"
+	cli "github.com/urfave/cli/v2"
 )
 
 func printVersion() {
