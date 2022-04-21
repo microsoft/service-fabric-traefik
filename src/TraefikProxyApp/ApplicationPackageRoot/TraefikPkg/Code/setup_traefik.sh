@@ -5,7 +5,7 @@ set -e
 
 #export TRAEFIK_HTTP_PORT=9999
 #export TRAEFIK_ENABLE_DASHBOARD=yes
-#export Fabric_Folder_App_Work=/home/dario/data
+#export Fabric_Folder_App_Work=/home/user/data
 
 cp traefik-template.yaml ../traefik.yaml
 

@@ -1,0 +1,24 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Launch Package",
+            "type": "go",
+            "request": "launch",
+            "mode": "auto",
+            "program": "${fileDirname}",
+            "args": [
+                "run",
+                "--httpport", "8080",
+                "--clusterEndpoint", "http://localhost:19080",
+                "--publishFilePath", "sf_discovered.yaml",
+                //"--clusterEndpoint", "https://userclus90.southcentralus.cloudapp.azure.com:19080",
+                // "--insecureTLS", "true",
+                // "--certStoreSearchKey", "userclientpkcs"
+                //"--certificate", "C:/projects/sf_stuff/traefik/userclient.crt.pem"
+	            //"--certificateKey", "C:/projects/sf_stuff/traefik/userclient.key.pem"
+            ]
+        }
+
+    ]
+}

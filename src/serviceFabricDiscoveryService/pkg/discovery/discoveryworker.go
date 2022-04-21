@@ -392,7 +392,7 @@ func TestRawRun() {
 	}
 
 	kvs := []*KVPair{
-		{Key: "traefik.http.routers.ddd.rule", Value: "Prefix('/dario')"},
+		{Key: "traefik.http.routers.ddd.rule", Value: "Prefix('/api')"},
 		{Key: "traefik.http.middlewares.sf-stripprefixregex_nonpartitioned.stripPrefixRegex.Regex.0", Value: "^/[^/]*/[^/]*/*"},
 	}
 
@@ -409,17 +409,17 @@ func TestRawRun() {
 func (p *Provider) generateConfiguration(e []ServiceItemExtended) *dynamic.Configuration {
 
 	kvs := []*KVPair{
-		//{Key: "traefik.http.middlewares.111.stripPrefix.prefixes", Value: "/dario , /dario1"},
-		//{Key: "traefik.http.middlewares.111.stripPrefix.Prefixes.1", Value: "/dario"},
-		//{Key: "traefik.http.routers.ddd.rule", Value: "PathPrefix(`/dario9`)"},
+		//{Key: "traefik.http.middlewares.111.stripPrefix.prefixes", Value: "/api , /api1"},
+		//{Key: "traefik.http.middlewares.111.stripPrefix.Prefixes.1", Value: "/api"},
+		//{Key: "traefik.http.routers.ddd.rule", Value: "PathPrefix(`/api9`)"},
 		{Key: "traefik.http.middlewares.sf-stripprefixregex_nonpartitioned.stripPrefixRegex.Regex", Value: "^/[^/]*/[^/]*/*"},
 	}
 
 	for _, i := range e {
 		/*kv := map[string]string{
 			"traefik.http.ep1": "true",
-			//"traefik.http.ep1.router.rule":                           "PathPrefix(`/dario`)",
-			//"traefik.http.ep1.middlewares.1.stripPrefix.prefixes":    "/dario",
+			//"traefik.http.ep1.router.rule":                           "PathPrefix(`/api`)",
+			//"traefik.http.ep1.middlewares.1.stripPrefix.prefixes":    "/api",
 			"traefik.http.ep1.service.loadbalancer.passhostheader":       "false",
 			"traefik.http.ep1.service.loadbalancer.healthcheck.path":     "/",
 			"traefik.http.ep1.service.loadbalancer.healthcheck.interval": "10s",
@@ -454,6 +454,7 @@ func (p *Provider) generateConfiguration(e []ServiceItemExtended) *dynamic.Confi
 			}
 
 			// Partition support only for http protocol
+			// TODO: Add flag so that endpoint rules are not duplicated for stateless service or services with 1 partition
 			if ep.protocol == "http" {
 				// Create the traefik services based on the sf service partitions
 				for _, part := range i.Partitions {
@@ -462,6 +463,12 @@ func (p *Provider) generateConfiguration(e []ServiceItemExtended) *dynamic.Confi
 					rule := fmt.Sprintf("PathPrefix(`/%s`) && Query(`PartitionID=%s`)", i.ID, partitionID)
 
 					p.generateHTTPRuleEntries(epName, ep.rules, name, rule, part, rules)
+				}
+			}
+			// pass the tls and serversTransport rules directly without proccesing
+			if ep.protocol == "tls" || ep.protocol == "serversTransport" {
+				for _, entry := range ep.rules {
+					rules[entry.Key] = entry.Value
 				}
 			}
 
@@ -506,18 +513,51 @@ func (p *Provider) getKVItemsFromLabels(kv map[string]string) (map[string]*Proto
 	endpoints := map[string]*ProtocolRules{}
 	for _, k := range keys {
 		t := strings.Split(k, ".")
+
+		if len(t) <= 2 || t[0] != "traefik" {
+			continue
+		}
+
+		// TODO: Add more robust label validation
+		if t[1] != "http" && t[1] != "tcp" && t[1] != "tls" {
+			continue
+		}
+
 		if len(t) == 3 && kv[k] == "true" {
 			if t[1] == "http" || t[1] == "tcp" {
 				endpoints[t[1]+"-"+t[2]] = &ProtocolRules{t[1], []*KVPair{}}
 			}
 		} else {
 			protoRules, ok := endpoints[t[1]+"-"+t[2]]
+
+			if t[1] == "tls" {
+				if _, ok := endpoints[t[0]+"-"+t[1]]; !ok {
+					// Add global traefik tls endpoint that can be referenced by router tls options
+					endpoints[t[0]+"-"+t[1]] = &ProtocolRules{t[1], []*KVPair{}}
+				}
+				protoRules, ok = endpoints[t[0]+"-"+t[1]]
+			}
+
+			if t[2] == "serversTransport" {
+				if _, ok := endpoints[t[1]+"-"+t[2]]; !ok {
+					// Add global http serversTransport endpoint that can be referenced by service loadbalancer
+					endpoints[t[1]+"-"+t[2]] = &ProtocolRules{t[2], []*KVPair{}}
+				}
+				protoRules, ok = endpoints[t[1]+"-"+t[2]]
+			}
+
 			if !ok {
 				continue
 			}
 			switch t[1] {
 			case "http":
 				if len(t) >= 5 {
+					switch t[2] {
+					case "serversTransport":
+						// Global http connection config referenced by service loadbalancer
+						// traefik.http.serversTransport.serversTransport0.serverName
+						protoRules.rules = append(protoRules.rules, &KVPair{Key: fmt.Sprintf("traefik.http.serversTransports.%s", strings.Join(t[3:], ".")), Value: kv[k]})
+					}
 					switch t[3] {
 					case "router":
 						protoRules.rules = append(protoRules.rules, &KVPair{Key: fmt.Sprintf("traefik.http.routers.[SERVICE].%s", strings.Join(t[4:], ".")), Value: kv[k]})
@@ -542,10 +582,24 @@ func (p *Provider) getKVItemsFromLabels(kv map[string]string) (map[string]*Proto
 					default:
 					}
 				}
+			case "tls":
+				if len(t) >= 5 {
+					//traefik.tls.option.option0.minVersion
+					//traefik.tls.store.store0.defaultCertificate.certFile
+					//traefik.tls.certificate.certficate0.certFile
+					switch t[2] {
+					case "option":
+						protoRules.rules = append(protoRules.rules, &KVPair{Key: fmt.Sprintf("traefik.tls.options.%s", strings.Join(t[3:], ".")), Value: kv[k]})
+					case "store":
+						protoRules.rules = append(protoRules.rules, &KVPair{Key: fmt.Sprintf("traefik.tls.stores.%s", strings.Join(t[3:], ".")), Value: kv[k]})
+					case "certificate":
+						protoRules.rules = append(protoRules.rules, &KVPair{Key: fmt.Sprintf("traefik.tls.certificates.%s", strings.Join(t[3:], ".")), Value: kv[k]})
+					default:
+					}
+				}
 			}
 		}
 	}
-
 	return endpoints, nil
 }
 
