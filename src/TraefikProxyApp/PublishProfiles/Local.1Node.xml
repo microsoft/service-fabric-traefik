@@ -8,5 +8,4 @@
   -->
   <ClusterConnectionParameters />
   <ApplicationParameterFile Path="..\ApplicationParameters\Local.1Node.xml" />
-  <StartupServiceParameterFile Path="..\StartupServiceParameters\Local.1Node.xml" />
 </PublishProfile>

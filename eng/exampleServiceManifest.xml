@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ServiceManifest Name="WeatherForecastServicePkg"
+                 Version="1.0.0"
+                 xmlns="http://schemas.microsoft.com/2011/01/fabric"
+                 xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+                 xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <ServiceTypes>
+    <!-- This is the name of your ServiceType. 
+         This name must match the string used in RegisterServiceType call in Program.cs. -->
+    <StatelessServiceType ServiceTypeName="WeatherForecastServiceType" >
+	  <Extensions>
+		  <Extension Name="Traefik">
+			  <Labels xmlns="http://schemas.microsoft.com/2015/03/fabact-no-schema">
+				  <Label Key="traefik.http.defaultEP">true</Label>
+				  <Label Key="traefik.http.defaultEP.router.entrypoints">foobar,foobar</Label>
+				  <Label Key="traefik.http.defaultEP.router.rule">PathPrefix(`/foobar`)</Label>
+				  <Label Key="traefik.http.defaultEP.router.tls.options">option2</Label>
+				  <Label Key="traefik.http.defaultEP.router.tls.certResolver">foobar</Label>
+				  <Label Key="traefik.http.defaultEP.router.tls.domains.domain0.main">foobar</Label>
+				  <Label Key="traefik.http.defaultEP.router.tls.domains.domain0.sans">foobar,foobar</Label>
+				  <Label Key="traefik.http.defaultEP.router.tls.domains.domain1.main">foobar</Label>
+				  <Label Key="traefik.http.defaultEP.router.tls.domains.domain1.sans">foobar,foobar</Label>
+
+				  <Label Key="traefik.http.defaultEP.middlewares.1.stripPrefix.prefixes">/foobar</Label>
+				  <Label Key="traefik.http.defaultEP.middlewares.1.basicAuth.users">foobar,foobar</Label>
+				  <Label Key="traefik.http.defaultEP.middlewares.1.buffering.maxRequestBodyBytes">42</Label>
+				  <Label Key="traefik.http.defaultEP.middlewares.1.headers.customRequestHeaders.name0">foobar</Label>
+				  <Label Key="traefik.http.defaultEP.middlewares.1.headers.accessControlAllowHeaders">foobar,foobar</Label>
+				  <Label Key="traefik.http.defaultEP.middlewares.1.headers.sslRedirect">true</Label>
+				  <Label Key="traefik.http.defaultEP.middlewares.1.ipWhiteList.sourceRange">foobar,foobar</Label>
+				  <Label Key="traefik.http.defaultEP.middlewares.1.passTLSClientCert.pem">true</Label>
+				  <Label Key="traefik.http.defaultEP.middlewares.1.passTLSClientCert.pem">true</Label>
+				  <Label Key="traefik.http.defaultEP.middlewares.1.passTLSClientCert.info.sans">true</Label>
+				  <Label Key="traefik.http.defaultEP.middlewares.1.passTLSClientCert.info.subject.commonName">true</Label>
+				  <Label Key="traefik.http.defaultEP.middlewares.1.passTLSClientCert.info.issuer.country">true</Label>
+				  <Label Key="traefik.http.defaultEP.middlewares.1.plugin.PluginConf.foo">bar</Label>
+				  <Label Key="traefik.http.defaultEP.middlewares.1.rateLimit.average">42</Label>
+				  <Label Key="traefik.http.defaultEP.middlewares.1.rateLimit.sourceCriterion.ipStrategy.excludedIPs">foobar,foobar</Label>
+				  <Label Key="traefik.http.defaultEP.middlewares.1.redirectScheme.scheme">foobar</Label>
+				  <Label Key="traefik.http.defaultEP.middlewares.1.replacePath.path">foobar</Label>
+				  <Label Key="traefik.http.defaultEP.middlewares.1.retry.attempts">42</Label>
+
+				  <Label Key="traefik.http.defaultEP.service.loadbalancer.passhostheader">true</Label>
+				  <Label Key="traefik.http.defaultEP.service.loadbalancer.healthcheck.path">/foobar</Label>
+				  <Label Key="traefik.http.defaultEP.service.loadbalancer.healthcheck.interval">10s</Label>
+				  <Label Key="traefik.http.defaultEP.service.loadbalancer.healthcheck.timeout">30s</Label>
+				  <Label Key="traefik.http.defaultEP.service.loadbalancer.healthcheck.scheme">https</Label>
+				  <Label Key="traefik.http.defaultEP.service.loadbalancer.healthcheck.headers.name0">foobar</Label>
+				  <Label Key="traefik.http.defaultEP.service.loadbalancer.serversTransport">serversTransport0</Label>
+				  <Label Key="traefik.http.defaultEP.service.loadbalancer.sticky.cookie.name">foobar</Label>
+				  <Label Key="traefik.http.defaultEP.service.loadbalancer.sticky.cookie.secure">true</Label>
+				  <Label Key="traefik.http.defaultEP.service.loadbalancer.sticky.cookie.httpOnly">true</Label>
+				  <Label Key="traefik.http.defaultEP.service.loadbalancer.sticky.cookie.sameSite">foobar</Label>
+				 
+				  <Label Key="traefik.http.serversTransport.serversTransport0.serverName">foobar</Label>
+				  <Label Key="traefik.http.serversTransport.serversTransport0.insecureSkipVerify">true</Label>
+				  <Label Key="traefik.http.serversTransport.serversTransport0.rootCAs">foobar,foobar</Label>
+				  <Label Key="traefik.http.serversTransport.serversTransport0.maxIdleConnsPerHost">42</Label>
+		
+				  <Label Key="traefik.tls.option.option2.minVersion">VersionTLS12</Label>
+				  <Label Key="traefik.tls.option.option2.cipherSuites">foobar,foobar</Label>
+				  <Label Key="traefik.tls.option.option2.sniStrict">true</Label>
+				  <Label Key="traefik.tls.option.option2.clientAuth.caFiles">foobar,foobar</Label>
+				  <Label Key="traefik.tls.option.option2.clientAuth.clientAuthType">foobar</Label>
+				  <Label Key="traefik.tls.option.option3.minVersion">VersionTLS12</Label>
+				  <Label Key="traefik.tls.option.option3.cipherSuites">foobar,foobar</Label>
+				  <Label Key="traefik.tls.option.option3.sniStrict">true</Label>
+				  <Label Key="traefik.tls.option.option3.clientAuth.caFiles">foobar,foobar</Label>
+				  <Label Key="traefik.tls.option.option3.clientAuth.clientAuthType">foobar</Label>
+				  <Label Key="traefik.tls.store.default.defaultCertificate.certFile">foobar</Label>
+				  <Label Key="traefik.tls.store.default.defaultCertificate.keyFile">foobar</Label>
+				  <Label Key="traefik.tls.certificate.certficate2.certFile">foobar</Label>
+				  <Label Key="traefik.tls.certificate.certficate2.keyFile">foobar</Label>
+				  <Label Key="traefik.tls.certificate.certficate2.stores">foobar,foobar</Label>
+				  
+				  <!-- Endpoint1 config-->
+				  <Label Key="traefik.http.WeatherForecast1">true</Label>
+				  <Label Key="traefik.http.WeatherForecast1.router.rule">Host(`foo-domain`) &#38;&#38; Path(`/foo-path/`) || Path(`/foo/`)</Label>
+				  <Label Key="traefik.http.WeatherForecast1.service.loadbalancer.healthcheck.path">/foobar</Label>
+				  <Label Key="traefik.http.WeatherForecast1.service.loadbalancer.healthcheck.interval">10s</Label>
+				  <Label Key="traefik.http.WeatherForecast1.service.loadbalancer.healthcheck.timeout">30s</Label>
+	
+		  </Labels>
+		  </Extension>
+	  </Extensions>
+	</StatelessServiceType>
+  </ServiceTypes>
+
+  <!-- Code package is your service executable. -->
+  <CodePackage Name="Code" Version="1.0.0">
+    <EntryPoint>
+      <ExeHost>
+        <Program>WeatherForecastService.exe</Program>
+        <WorkingFolder>CodePackage</WorkingFolder>
+      </ExeHost>
+    </EntryPoint>
+    <EnvironmentVariables>
+      <EnvironmentVariable Name="ASPNETCORE_ENVIRONMENT" Value=""/>
+    </EnvironmentVariables>
+  </CodePackage>
+
+  <!-- Config package is the contents of the Config directory under PackageRoot that contains an 
+       independently-updateable and versioned set of custom configuration settings for your service. -->
+  <ConfigPackage Name="Config" Version="1.0.0" />
+
+  <Resources>
+    <Endpoints>
+      <!-- This endpoint is used by the communication listener to obtain the port on which to 
+           listen. Please note that if your service is partitioned, this port is shared with 
+           replicas of different partitions that are placed in your code. -->
+      <Endpoint Protocol="http" Name="WeatherForecastEndpoint" Type="Input" Port="8387" />
+    </Endpoints>
+  </Resources>
+</ServiceManifest>

@@ -31,15 +31,12 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="ApplicationPackageRoot\TraefikPkg\Code\traefik.exe" />
-    <Content Include="ApplicationPackageRoot\TraefikPkg\Config\Settings.xml" />
     <Content Include="ApplicationPackageRoot\TraefikPkg\Code\traefik.yaml" />
     <Content Include="ApplicationPackageRoot\TraefikPkg\Code\traefik-template.yaml" />
     <Content Include="ApplicationPackageRoot\TraefikPkg\ServiceManifest.xml" />
+    <Content Include="ApplicationPackageRoot\ApplicationManifest.xml" />
     <Content Include="ApplicationPackageRoot\TraefikPkg\Code\dynConfig\dyn.yaml" />
     <Content Include="ApplicationPackageRoot\TraefikPkg\Code\setup.ps1" />
-    <Content Include="ApplicationPackageRoot\TraefikPkg\Code\setup_traefik.bat" />
-    <Content Include="ApplicationPackageRoot\TraefikPkg\Code\setup_traefik.sh" />
-    <Content Include="ApplicationPackageRoot\TraefikPkg\Code\startproxy.bat" />
     <Content Include="ApplicationPackageRoot\TraefikPkg\Fetcher.Code\server.exe" />
     <Content Include="packages.config" />
   </ItemGroup>

@@ -8,9 +8,9 @@ import (
 	"runtime"
 	"time"
 
-	disco "github.com/dariopb/serviceFabricDiscoveryService/pkg/discovery"
 	"github.com/gorilla/websocket"
 	"github.com/labstack/echo/v4"
+	disco "github.com/microsoft/service-fabric-traefik/serviceFabricDiscoveryService/pkg/discovery"
 	echolog "github.com/onrik/logrus/echo"
 	log "github.com/sirupsen/logrus"
 )

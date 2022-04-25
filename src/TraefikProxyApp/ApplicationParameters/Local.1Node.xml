@@ -10,6 +10,5 @@
 	  <Parameter Name="ClientCertificate" Value="" />
 	  <Parameter Name="ClientCertificatePK" Value="" />
 	  <Parameter Name="ReverseProxy_EnableDashboard" Value="true" />
-
   </Parameters>
 </Application>
