@@ -21,7 +21,7 @@ You can clone the repo, build, and deploy or simply grab the latest [ZIP/SFPKG a
 
 ## Deploy it using PowerShell  
 
-After either downloading the sfapp package from the releases or cloning the repo and building (code will be up shortly), you need to adjust the configuration settings to meet to your needs (this means changing settings in Settings.xml, ApplicationManifest.xml and any other changes needed for the traefik-template.yaml configuration).
+After either downloading the sf app package from the releases or cloning the repo and building, you need to adjust the configuration settings to meet to your needs (this means changing settings in Settings.xml, ApplicationManifest.xml and any other changes needed for the traefik-template.yaml configuration).
 
 >If you need a quick test cluster, you can deploy a test Service Fabric managed cluster following the instructions from here: [SFMC](https://docs.microsoft.com/en-us/azure/service-fabric/quickstart-managed-cluster-template), or via this template if you already have a client certificate and thumbprint available: [Deploy](https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2FAzure-Samples%2Fservice-fabric-cluster-templates%2Fmaster%2FSF-Managed-Basic-SKU-1-NT%2Fazuredeploy.json)
 
@@ -87,7 +87,7 @@ Start-ServiceFabricApplicationUpgrade -ApplicationName fabric:/traefik -Applicat
 
 ### ServiceManifest file
 
-This is a sample SF enabled service showing the currently supported labels. If the sf name is fabric:/pinger/PingerService, the endpoint [endpointName] will be expose at that prefix: '/pinger/PingerService/'
+This is a sample SF enabled service showing some of the supported labels. If the sf name is fabric:/pinger/PingerService, the endpoint [endpointName] will be expose at that prefix: '/pinger/PingerService/'.
 
 ```xml
   ...
@@ -121,30 +121,46 @@ If you need to change the routes or add middleware then you can add different la
 
 
 ## Supported Labels
+Most of all the traefik http, tcp and tls  [dynamic configurations](https://doc.traefik.io/traefik/reference/dynamic-configuration/file/) can be configured via their corresponding service extension label. The list below is only an overview of all supported labels. Refer to exampleServiceManifest.xml under /eng to view a more comprehensive list. If a label is missing then follow a similar format to add the traefik config that you desire.
+
+
 
 *Http enable section*
 
 * **traefik.http.[endpointName]**    Enables exposing an http service via the reverse proxy ['true']
 
-Router section
+*Router section*
 
 * **traefik.http.[endpointName].router.rule**    Traefik rule to apply [PathPrefix(`/api`))]. This rule is added on top of the default path generation. If this is set, you **have** to define a middleware to remove the prefix for the service to receive the stripped path.
-* **traefik.http.[endpointName].router.tls.options**    Enable TLS on the route ['true'/'false']. T
+* **traefik.http.[endpointName].router.tls.options**    Enable TLS on the route ['optionName'].
 
 *Loadbalancer section*
 
-* **traefik.http.[endpointName].loadbalancer.passhostheader**          passhostheaders ['true'/'false']
-* **traefik.http.[endpointName].loadbalancer.healthcheck.path**        Healthcheck endpoint path ['/healtz']
-* **traefik.http.[endpointName].loadbalancer.healthcheck.interval**    Healthcheck interval ['10s']
-* **traefik.http.[endpointName].loadbalancer.healthcheck.scheme**      Healthcheck scheme ['http']
+* **traefik.http.[endpointName].service.loadbalancer.passhostheader**          passhostheaders ['true'/'false']
+* **traefik.http.[endpointName].service.loadbalancer.serversTransport**  serversTransport name ['serversTransportName']
+* **traefik.http.[endpointName].service.loadbalancer.healthcheck.path**        Healthcheck endpoint path ['/healtz']
+* **traefik.http.[endpointName].service.loadbalancer.healthcheck.interval**    Healthcheck interval ['10s']
+* **traefik.http.[endpointName].service.loadbalancer.healthcheck.scheme**      Healthcheck scheme ['http']
+* **traefik.http.[endpointName].service.loadbalancer.timeout.interval**    Healthcheck timeout ['30s']
+* **traefik.http.[endpointName].service.loadbalancer.sticky.cookie.sameSite** Sticky session affinity cookie ['none'/'lax'/'strict']
 
 *Middleware section*
 
-* **traefik.http.[endpointName].middlewares.[Yourt_Middleware_Name].stripPrefix.prefixes**    prefix to strip ['/api']
+* **traefik.http.[endpointName].middlewares.[middlewareName].stripPrefix.prefixes**    prefix to strip ['/api']
+
+*TLS section*
+* **traefik.tls.option.[optionName].minVersion**    tls min version option ['VersionTLS12']
+* **traefik.tls.store.default.[defaultCertificate].certFile**    path to cert ['path/to/cert.crt']
+* **traefik.tls.store.default.[defaultCertificate].keyFile** path to cert key ['path/to/cert.key']
+* **traefik.tls.certificate.[certName].certFile**    path to cert ['path/to/cert.cert']
+* **traefik.tls.certificate.[certName].keyFile** path to cert key ['path/to/cert.key'] 
+      
+*ServersTransport section*
+* **traefik.http.serversTransport.[serversTransportName].insecureSkipVerify**    disables SSL certificate verification ['true'/'false']
 
 ## Sample Test application
 
-A sample test application, that is included in the release, can be deployed to test everything is working alright. After deployment, you should be able to hit it at:
+A sample test application, that is included in the release, can be deployed to test everything is working. After deployment, you should be able to reach it at:
 
 https://your-cluster:8080/pinger0/PingerService/id
 
@@ -179,15 +195,17 @@ New-ServiceFabricApplication -ApplicationName fabric:/pinger0 -ApplicationTypeNa
 
 This repo includes:
 
-* `TraefikProxyApp`: an example Service Fabric application, consisting of:
-  * `server.exe`: The guest executable that fetches endpoint information from Service Fabric that are configured to use Traefik via Service Manifest Extensions, and exposes the summarized configurations for `traefik.exe` to consume in real-time
-  * `traefik.exe`: The guest executable that implements a Reverse Proxy using Traefik. It reads configuration fetched from server.exe
+* `TraefikProxyApp`: an example Service Fabric application, referencing two guest executables:
+  * `server.exe`: Performs service discovery on a sf cluster, fetches endpoint information and publishes the config to be consumed in real-time
+  * `traefik.exe`: Implements a reverse proxy using Traefik config read from the dynamic config file 
+  
 
-## Building & Getting latest Executable
+## Clone, Build and get Latest Executables
 
-1. At the moment application package comes with server.exe, which includes latest serviceFabricDiscovery changes. Can also add changes to serviceFabricDiscoveryService and then manually build binary. Use similar steps mentioned under method 2:Using go [Building and Testing - Traefik](https://doc.traefik.io/traefik/contributing/building-testing/#build-traefik), to build server (e.g "go build .\cmd\server"). Once the server executable has been built, replace the default executable under ./src/TraefikProxyApp/ApplicationPackageRoot/TraefikPkg/Fetcher.Code
+1. Users can clone the github repo and make
+changes to server/fetcher app under /serviceFabricDiscoveryService. Once changes have been made the binary can be manually built ("go build ./cmd/server") and moved to the correct sf code package ("./TraefikProxyApp/ApplicationPackageRoot/TraefikPkg/Fetcher.Code").
 
-2. Get latest traefik.exe from [traefik github page](https://github.com/traefik/traefik/releases) and place under ./src/TraefikProxyApp/ApplicationPackageRoot/TraefikPkg/Code
+2. Get latest traefik.exe from [traefik github page](https://github.com/traefik/traefik/releases) and place it under its corresponding sf code package ("./TraefikProxyApp/ApplicationPackageRoot/TraefikPkg/Code")
 
 
 ## Updating manifest file
@@ -245,7 +263,7 @@ This route exposes a stream of Traefik 2.x compatible yaml data that can be fed 
 ## Running Locally
 
 * Deploy `TraefikProxyApp` to the local cluster
-* Deploy the pinger test application mentioned in [Sample-Test-Application](#sample-test-application). Using a browser, access `https://localhost/pinger0/PingerService`. If all works, you should get a `200 OK` response with contents resembling the following:
+* Deploy the pinger test application mentioned in [Sample-Test-Application](#sample-test-application). Using a browser access `https://localhost/pinger0/PingerService`. If all works, you should get a `200 OK` response with contents resembling the following:
 
    ```json
    {
