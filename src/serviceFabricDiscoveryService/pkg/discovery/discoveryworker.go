@@ -79,8 +79,7 @@ func NewDiscoveryWorker(ctx context.Context, config *Config, name string) (*Prov
 		httpEntrypoint:       config.HttpEntrypoint,
 	}
 
-	if strings.HasPrefix(p.clusterManagementURL, "https") &&
-		(config.CertStoreSearchKey != "" || (config.CertificateKey != "" && config.Certificate != "")) {
+	if (config.CertStoreSearchKey != "" || (config.CertificateKey != "" && config.Certificate != "")) {
 		p.tlsConfig = &certstorehelper.ClientTLS{
 			Cert:               config.Certificate,
 			Key:                config.CertificateKey,
