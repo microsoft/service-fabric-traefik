@@ -406,7 +406,7 @@ func TestRawRun() {
 	log.Printf("Done: [%s]", string(jsonData))
 }
 
-func (p *Provider) generateConfiguration(e []ServiceItemExtended) *dynamic.Configuration {
+func (p *Provider) generateConfiguration(serviceItems []ServiceItemExtended) *dynamic.Configuration {
 
 	kvs := []*KVPair{
 		//{Key: "traefik.http.middlewares.111.stripPrefix.prefixes", Value: "/api , /api1"},
@@ -415,7 +415,7 @@ func (p *Provider) generateConfiguration(e []ServiceItemExtended) *dynamic.Confi
 		{Key: "traefik.http.middlewares.sf-stripprefixregex_nonpartitioned.stripPrefixRegex.Regex", Value: "^/[^/]*/[^/]*/*"},
 	}
 
-	for _, i := range e {
+	for _, serviceItem := range serviceItems {
 		/*kv := map[string]string{
 			"traefik.http.ep1": "true",
 			//"traefik.http.ep1.router.rule":                           "PathPrefix(`/api`)",
@@ -427,9 +427,9 @@ func (p *Provider) generateConfiguration(e []ServiceItemExtended) *dynamic.Confi
 		*/
 
 		// get a map of endpoints names to a template for the rules
-		endpoints, err := p.getKVItemsFromLabels(i.Labels)
+		endpoints, err := p.getKVItemsFromLabels(serviceItem.Labels)
 		if err != nil {
-			log.Printf("failed processing labels to kvs entries for service [%s]: %v", i.Name, err)
+			log.Printf("failed processing labels to kvs entries for service [%s]: %v", serviceItem.Name, err)
 			continue
 		}
 
@@ -437,34 +437,34 @@ func (p *Provider) generateConfiguration(e []ServiceItemExtended) *dynamic.Confi
 		for epName, ep := range endpoints {
 			rules := map[string]string{}
 
-			baseName := strings.ReplaceAll(i.Name, "/", "-")
+			baseName := strings.ReplaceAll(serviceItem.Name, "/", "-")
 			baseName = normalize(baseName)
 			baseName = fmt.Sprintf("%s-%s", baseName, epName)
 
 			// If there is only one partition, expose the service name route directly
-			if len(i.Partitions) == 1 {
+			if len(serviceItem.Partitions) == 1 {
 				// Expose both a default endpoint and the QP endpoint
 				if ep.protocol == "http" {
-					rule := fmt.Sprintf("PathPrefix(`/%s`)", i.ID)
-					p.generateHTTPRuleEntries(epName, ep.rules, baseName, rule, i.Partitions[0], rules)
+					rule := fmt.Sprintf("PathPrefix(`/%s`)", serviceItem.ID)
+					p.generateHTTPRuleEntries(epName, ep.rules, baseName, rule, serviceItem.Partitions[0], rules)
 				} else if ep.protocol == "tcp" {
 					rule := "HostSNI(`*`)"
-					p.generateTCPRuleEntries(epName, ep.rules, baseName, rule, i.Partitions[0], rules)
+					p.generateTCPRuleEntries(epName, ep.rules, baseName, rule, serviceItem.Partitions[0], rules)
 				}
 			}
 
-			// Partition support only for http protocol
-			// TODO: Add flag so that endpoint rules are not duplicated for stateless service or services with 1 partition
-			if ep.protocol == "http" {
+			// Partition support only for stateful services using the http protocol			
+			if isStateful(serviceItem) && ep.protocol == "http" {
 				// Create the traefik services based on the sf service partitions
-				for _, part := range i.Partitions {
+				for _, part := range serviceItem.Partitions {
 					partitionID := part.PartitionInformation.ID
 					name := fmt.Sprintf("%s-%s", baseName, partitionID)
-					rule := fmt.Sprintf("PathPrefix(`/%s`) && Query(`PartitionID=%s`)", i.ID, partitionID)
+					rule := fmt.Sprintf("PathPrefix(`/%s`) && Query(`PartitionID=%s`)", serviceItem.ID, partitionID)
 
 					p.generateHTTPRuleEntries(epName, ep.rules, name, rule, part, rules)
 				}
 			}
+			
 			// pass the tls and serversTransport rules directly without proccesing
 			if ep.protocol == "tls" || ep.protocol == "serversTransport" {
 				for _, entry := range ep.rules {
