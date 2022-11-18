@@ -271,7 +271,8 @@ This route exposes a stream of Traefik 2.x compatible yaml data that can be fed 
    }
    ```
 
-
+## Credits
+The discovery mechanism is based on [Traefik](https://github.com/traefik/traefik) made [by Traefik Labs](https://traefik.io/).
 
 ## License
 
