@@ -6,7 +6,7 @@ require (
 	github.com/ghodss/yaml v1.0.0
 	github.com/github/certstore v0.1.0
 	github.com/gorilla/websocket v1.4.2
-	github.com/jjcollinge/servicefabric v0.0.2-0.20180125130438-8eebe170fa1b
+	github.com/jjcollinge/servicefabric v0.0.2-0.20231030111952-b30eba315e44
 	github.com/labstack/echo/v4 v4.5.0
 	github.com/onrik/logrus v0.9.0
 	github.com/sirupsen/logrus v1.8.1
