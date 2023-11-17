@@ -142,7 +142,7 @@ func (p *Provider) loadConfiguration(ctx context.Context, cfgChan chan<- []byte)
 		case <-ticker.C:
 			e, err := p.fetchState()
 			if err != nil {
-				log.Print(err)
+				log.Printf("failed to gets applications %v", err)
 				continue
 			}
 
@@ -183,8 +183,7 @@ func (p *Provider) fetchState() ([]ServiceItemExtended, error) {
 
 	apps, err := p.sfClient.GetApplications()
 	if err != nil {
-		log.Printf("failed to gets applications %v", err)
-		return nil, nil
+		return nil, err
 	}
 
 	var results []ServiceItemExtended
@@ -453,7 +452,7 @@ func (p *Provider) generateConfiguration(serviceItems []ServiceItemExtended) *dy
 				}
 			}
 
-			// Partition support only for stateful services using the http protocol			
+			// Partition support only for stateful services using the http protocol
 			if isStateful(serviceItem) && ep.protocol == "http" {
 				// Create the traefik services based on the sf service partitions
 				for _, part := range serviceItem.Partitions {
@@ -464,7 +463,7 @@ func (p *Provider) generateConfiguration(serviceItems []ServiceItemExtended) *dy
 					p.generateHTTPRuleEntries(epName, ep.rules, name, rule, part, rules)
 				}
 			}
-			
+
 			// pass the tls and serversTransport rules directly without proccesing
 			if ep.protocol == "tls" || ep.protocol == "serversTransport" {
 				for _, entry := range ep.rules {
