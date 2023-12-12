@@ -213,6 +213,7 @@ func (p *Provider) fetchState() ([]ServiceItemExtended, error) {
 			partitions, err := p.sfClient.GetPartitions(app.ID, service.ID)
 			if err != nil {
 				log.Printf("failed to get partitions: %v", err)
+				return nil, err
 			}
 
 			for _, partition := range partitions.Items {
