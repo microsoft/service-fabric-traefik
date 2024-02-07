@@ -92,11 +92,30 @@ loop:
 		case data := <-disco.cfgChan:
 			log.Debugf("New snapshot arrived: [%s]", string(data))
 
-			if disco.publishFilePath != "" {
-				err := os.WriteFile(disco.publishFilePath, data, 0644)
-				if err != nil {
-					log.Errorf("Failed to write file location: [%s]", disco.publishFilePath)
+			// Prepare new settings.
+			tempFilePath := disco.publishFilePath + ".temp"
+			errTemp := os.WriteFile(tempFilePath, data, 0644)
+			var firstAttempt = 0
+			if errTemp != nil {
+				log.Errorf("Failed to write file location: [%s]", tempFilePath)
+				firstAttempt = 5
+			}
+
+			// Attempt to atomically replace the original file with the temporary file, with retries
+			maxRetries := 5
+			retryInterval := time.Second
+
+			for i := firstAttempt; i < maxRetries; i++ {
+				err := os.Rename(tempFilePath, disco.publishFilePath)
+				if err == nil {
+					log.Infof("Replaced file atomically: [%s]", disco.publishFilePath)
+					break
+				} else {
+					log.Errorf("Failed to move file from [%s] to [%s]", tempFilePath, disco.publishFilePath)
 				}
+
+				// Wait for a short interval before the next retry
+				time.Sleep(retryInterval)
 			}
 
 			disco.mtx.Lock()
