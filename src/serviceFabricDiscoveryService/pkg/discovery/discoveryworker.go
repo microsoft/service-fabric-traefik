@@ -142,7 +142,7 @@ func (p *Provider) loadConfiguration(ctx context.Context, cfgChan chan<- []byte)
 		case <-ticker.C:
 			e, err := p.fetchState()
 			if err != nil {
-				log.Printf("failed to gets applications %v", err)
+				log.Print(err)
 				continue
 			}
 
@@ -183,6 +183,7 @@ func (p *Provider) fetchState() ([]ServiceItemExtended, error) {
 
 	apps, err := p.sfClient.GetApplications()
 	if err != nil {
+		log.Printf("failed to gets applications %v", err)
 		return nil, err
 	}
 
