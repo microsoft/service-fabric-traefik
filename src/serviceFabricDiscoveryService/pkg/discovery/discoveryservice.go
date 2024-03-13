@@ -97,7 +97,7 @@ loop:
 			errTemp := os.WriteFile(tempFilePath, data, 0644)
 			var firstAttempt = 0
 			if errTemp != nil {
-				log.Errorf("Failed to write file location: [%s]", tempFilePath)
+				log.Errorf("Failed to write file location: [%s]: %v", tempFilePath, errTemp)
 				firstAttempt = 5
 			}
 
