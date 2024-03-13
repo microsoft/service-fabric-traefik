@@ -1,0 +1,48 @@
+version: "3.3"
+
+volumes:
+  config-data:
+
+services:
+
+  traefik:
+    image: traefik:v2.11
+    container_name: traefik
+    depends_on:
+      - sf-discovery
+    command:
+      - "--log.level=DEBUG"
+      - "--api.insecure=true"
+      - "--providers.file.directory=/config/"
+      - "--entrypoints.web.address=:80"
+    ports:
+      - "80:80"
+      - "8080:8080"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - type: volume
+        source: config-data
+        target: /config
+        read_only: true
+        volume:
+          nocopy: true
+
+  sf-discovery:
+    build: ../../../src/serviceFabricDiscoveryService
+    container_name: sf-discovery
+    command:
+      - run
+      - --clusterEndpoint=https://traefik-cluster.eastus.cloudapp.azure.com:19080
+      - --insecureTLS
+      - --clientCertificate=/certs/sf.crt
+      - --clientCertificatePK=/certs/sf.key
+      - --httpport=8000
+      - --publishFilePath=/config/powpow.yaml
+    volumes:
+      - ./certs:/certs
+      - type: volume
+        source: config-data
+        target: /config
+        read_only: false
+        volume:
+          nocopy: true

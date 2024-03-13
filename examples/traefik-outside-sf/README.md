@@ -1,0 +1,63 @@
+# Traefik outside Service Fabric, on Linux
+
+This example shows how to run Traefik Proxy on a virtual machine, with docker-compose, to expose and manage traffic of Service Fabric applications.
+
+## Pre-requisites
+
+You'll need sfctl, see [here](https://learn.microsoft.com/en-us/azure/service-fabric/service-fabric-get-started-linux?tabs=sdksetupubuntu%2Clocalclusteroneboxcontainer#script-installation)
+
+/!\ Do not install latest version of sfctl /!\
+
+```shell
+pipx install sfctl==10.0.0
+```
+
+## Deploy Service Fabric and virtual machine
+
+You'll need to get your Subscription ID, see [here](https://portal.azure.com/#view/Microsoft_Azure_Billing/Subscripti
+nsBladeV2) and select a strong password.
+
+
+```shell
+export AZURE_SUBSCRIPTION="XXX"
+export SF_PASSWORD="XXX"
+./deploy-sf.sh
+```
+
+It will deploy both Service Fabric cluster and a single vm running Traefik and Service Fabric Discovery Service with docker compose.
+
+## Connect sfctl
+
+```shell
+sfctl cluster select --no-verify --pem traefik-clustereastuscloudappazurecom.pem --endpoint https://traefik-cluster.eastus.cloudapp.azure.com:19080
+```
+
+## Deploy Applications
+
+```shell
+./deploy-whoami.sh
+```
+
+## Access to VMs
+
+![NAT SSH](natssh.png)
+
+You can access to VMs with ssh using NAT inbound rules.
+
+In this example:
+
+```shell
+ssh traefik@52.226.132.159 -p 3389
+```
+
+## Clean
+
+```shell
+clean-whoami.sh
+clean-traefik.sh
+clean-sf.sh
+```
+
+## Links
+
+* [Official linux tutorial](https://learn.microsoft.com/en-us/azure/service-fabric/service-fabric-quickstart-containers-linux)
