@@ -36,6 +36,12 @@ packages/
 # *.key
 *.[Kk][Ee][Yy]
 
+# *.pem
+*.[Pp][Ee][Mm]
+
+# *.crt
+*.[Cc][Rr][Tt]
+
 # *.sst
 *.[Ss][Ss][Tt]
 
@@ -93,3 +99,6 @@ msbuild*.*log
 # Ignore compiled text templates.
 *.g.ps1
 *.pt.ps1
+
+examples/traefik-inside-sf/Traefik/TraefikPkg/Traefik.Code/traefik
+examples/traefik-inside-sf/Traefik/TraefikPkg/Fetcher.Code/fetcher
