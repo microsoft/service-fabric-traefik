@@ -1,0 +1,44 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ServiceManifest Name="TraefikPkg" Version="1.0.0" xmlns="http://schemas.microsoft.com/2011/01/fabric">
+    <ServiceTypes>
+        <StatelessServiceType ServiceTypeName="TraefikType" UseImplicitHost="true"/>
+    </ServiceTypes>
+    <!-- Treefik -->
+    <CodePackage Name="Traefik.Code" Version="1.0.0">
+        <SetupEntryPoint>
+            <ExeHost IsExternalExecutable="false">
+                <Program>setup_traefik.sh</Program>
+                <Arguments></Arguments>
+                <WorkingFolder>CodePackage</WorkingFolder>
+                <ConsoleRedirection FileRetentionCount="1" FileMaxSizeInKb="1024"/>
+            </ExeHost>
+        </SetupEntryPoint>
+        <EntryPoint>
+            <ExeHost>
+                <Program>traefik</Program>
+                <Arguments>--configFile=traefik-static.yaml</Arguments>
+                <WorkingFolder>CodePackage</WorkingFolder>
+                <ConsoleRedirection FileRetentionCount="5" FileMaxSizeInKb="2048"/>
+            </ExeHost>
+        </EntryPoint>
+    </CodePackage>
+
+    <!-- Fetcher -->
+    <CodePackage Name="Fetcher.Code" Version="1.0.0">
+        <EntryPoint>
+            <ExeHost IsExternalExecutable="false">
+                <Program>fetcher</Program>
+                <Arguments>run --clusterEndpoint=https://traefik-cluster.eastus.cloudapp.azure.com:19080 --insecureTLS --clientCertificate=./certs/sf.crt --clientCertificatePK=./certs/sf.key --httpport=9000 --publishFilePath=../dynamic-config/powpow.yaml</Arguments>
+                <WorkingFolder>CodePackage</WorkingFolder>
+                <ConsoleRedirection FileRetentionCount="5" FileMaxSizeInKb="2048"/>
+            </ExeHost>
+        </EntryPoint>
+    </CodePackage>
+
+    <Resources>
+        <Endpoints>
+            <Endpoint Name="ReverseProxyEndpoint0" UriScheme="http" CodePackageRef="Traefik.Code" Port="80"/>
+            <Endpoint Name="FetcherEndpoint" UriScheme="http" CodePackageRef="Fetcher.Code" Port="9000"/>
+        </Endpoints>
+    </Resources>
+</ServiceManifest>
