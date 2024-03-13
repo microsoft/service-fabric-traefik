@@ -1,0 +1,16 @@
+entryPoints:
+  web:
+    address: ":80"
+
+api:
+  dashboard: true
+
+log:
+  level: DEBUG
+  filePath: ./traefik.log
+
+providers:
+  file:
+    directory: ../dynamic-config
+    watch: "true"
+
