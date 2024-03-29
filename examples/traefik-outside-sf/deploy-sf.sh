@@ -4,10 +4,10 @@
 ResourceGroupName='traefik-cluster'
 ClusterName='traefik-cluster'
 Location='eastus'
-Password='ChangemeIAMinsecureTraefik'
+Password="${SF_PASSWORD}"
 Subject='traefik-cluster.eastus.cloudapp.azure.com'
 VaultName='traefik-cluster'
-VmPassword='ChangemeIAMinsecureTraefik'
+VmPassword="${SF_PASSWORD}"
 VmUserName='traefik'
 
 # Login to Azure and set the subscription
