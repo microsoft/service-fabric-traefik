@@ -37,6 +37,10 @@ sfctl cluster select --no-verify --pem traefik-clustereastuscloudappazurecom.pem
 ./deploy-whoami.sh
 ```
 
+![Cluster SF state](assets/cluster-sf.png "Cluster SF state")
+
+![Whoami application](assets/whoami-application.png "Whoami application")
+
 ## Deploy Traefik
 
 This shell script will download the traefik v2.11.0 version and build the microsoft fetcher and deploy an application with traefik and fetcher.
@@ -47,7 +51,7 @@ This shell script will download the traefik v2.11.0 version and build the micros
 
 ## Access to VMs
 
-![NAT SSH](natssh.png)
+![NAT SSH](assets/natssh.png "NAT SSH")
 
 You can access to VMs with ssh using NAT inbound rules.
 
