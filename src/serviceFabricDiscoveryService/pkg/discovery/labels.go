@@ -64,7 +64,7 @@ func setLoadbalancerSticky(lb *dynamic.ServersLoadBalancer, val string) error {
 
 func setLoadbalancerHealthcheckPath(lb *dynamic.ServersLoadBalancer, val string) error {
 	if lb.HealthCheck == nil {
-		lb.HealthCheck = &dynamic.HealthCheck{}
+		lb.HealthCheck = &dynamic.ServerHealthCheck{}
 	}
 
 	lb.HealthCheck.Path = val
@@ -73,7 +73,7 @@ func setLoadbalancerHealthcheckPath(lb *dynamic.ServersLoadBalancer, val string)
 
 func setLoadbalancerHealthcheckInterval(lb *dynamic.ServersLoadBalancer, val string) error {
 	if lb.HealthCheck == nil {
-		lb.HealthCheck = &dynamic.HealthCheck{}
+		lb.HealthCheck = &dynamic.ServerHealthCheck{}
 	}
 
 	lb.HealthCheck.Interval = val
@@ -82,7 +82,7 @@ func setLoadbalancerHealthcheckInterval(lb *dynamic.ServersLoadBalancer, val str
 
 func setLoadbalancerHealthcheckScheme(lb *dynamic.ServersLoadBalancer, val string) error {
 	if lb.HealthCheck == nil {
-		lb.HealthCheck = &dynamic.HealthCheck{}
+		lb.HealthCheck = &dynamic.ServerHealthCheck{}
 	}
 
 	lb.HealthCheck.Scheme = val
