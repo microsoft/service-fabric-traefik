@@ -14,6 +14,7 @@ RUN go build -o dist/serviceFabricDiscoveryService ./cmd
 #UNCOMMENT
 # FROM gcr.io/distroless/static
 
-COPY --from=builder /tmp/build/dist/serviceFabricDiscoveryService /
+#UNCOMMENT
+# COPY --from=builder /tmp/build/dist/serviceFabricDiscoveryService /
 
 ENTRYPOINT ["/serviceFabricDiscoveryService"]
