@@ -1,7 +1,8 @@
 # syntax=docker/dockerfile:1
 
 ARG ARCH
-FROM golang:1.20 as builder
+#UNCOMMENT
+# FROM golang:1.20 as builder
 
 WORKDIR /tmp/build
 
@@ -10,8 +11,10 @@ ENV CGO_ENABLED=0
 COPY . .
 RUN go build -o dist/serviceFabricDiscoveryService ./cmd
 
-FROM gcr.io/distroless/static
+#UNCOMMENT
+# FROM gcr.io/distroless/static
 
-COPY --from=builder /tmp/build/dist/serviceFabricDiscoveryService /
+#UNCOMMENT
+# COPY --from=builder /tmp/build/dist/serviceFabricDiscoveryService /
 
 ENTRYPOINT ["/serviceFabricDiscoveryService"]
