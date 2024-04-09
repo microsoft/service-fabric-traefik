@@ -1,4 +1,4 @@
-# ServiceFabricTraefik 1.0.0
+# ServiceFabricTraefik 1.1.0
 
 The reverse proxy is an application, supplied out of band from the service fabric distribution, that customers deploy to their clusters and handles proxying traffic to backend services. The service, that potentially runs on every node in the cluster, takes care of handling endpoint resolution, automatic retry, and other connection failures on behalf of the clients. The reverse proxy can be configured to apply various policies as it handles requests from client services.
 
@@ -55,7 +55,7 @@ Connect-ServiceFabricCluster -ConnectionEndpoint @('sf-win-cluster.westus2.cloud
 
 # Use this to remove a previous Traefik Application
 #Remove-ServiceFabricApplication -ApplicationName fabric:/traefik -Force
-#Unregister-ServiceFabricApplicationType -ApplicationTypeName TraefikType -ApplicationTypeVersion 1.0.0 -Force
+#Unregister-ServiceFabricApplicationType -ApplicationTypeName TraefikType -ApplicationTypeVersion 1.1.0 -Force
 
 #Copy and register and run the Traefik Application
 Copy-ServiceFabricApplicationPackage -CompressPackage -ApplicationPackagePath $appPath # -ApplicationPackagePathInImageStore traefik
@@ -75,12 +75,12 @@ $p = @{
     #ReverseProxy_PlacementConstraints="NodeType == NT2"
 }
 $p
-New-ServiceFabricApplication -ApplicationName fabric:/traefik -ApplicationTypeName TraefikType -ApplicationTypeVersion 1.0.0 -ApplicationParameter $p
+New-ServiceFabricApplication -ApplicationName fabric:/traefik -ApplicationTypeName TraefikType -ApplicationTypeVersion 1.1.0 -ApplicationParameter $p
 
 
 #OR if updating existing version:  
 
-Start-ServiceFabricApplicationUpgrade -ApplicationName fabric:/traefik -ApplicationTypeVersion 1.0.0 -Monitored -FailureAction rollback
+Start-ServiceFabricApplicationUpgrade -ApplicationName fabric:/traefik -ApplicationTypeVersion 1.1.0 -Monitored -FailureAction rollback
 ```  
 
 ## Add the right labels to your services
@@ -162,7 +162,7 @@ Most of all the traefik http, tcp and tls  [dynamic configurations](https://doc.
 
 A sample test application, that is included in the release, can be deployed to test everything is working. After deployment, you should be able to reach it at:
 
-https://your-cluster:8080/pinger0/PingerService/id
+https://ClusterFQDN:8080/pinger0/PingerService/id
 
 >Note that the service is going to be exposed on https since the service has a label for the route.tls option. You can explore that looking at the service manifest for this app.
 
