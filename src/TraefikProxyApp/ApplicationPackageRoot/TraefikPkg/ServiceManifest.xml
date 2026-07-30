@@ -1,10 +1,10 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<ServiceManifest Name="TraefikPkg" Version="0.1.0-beta" xmlns="http://schemas.microsoft.com/2011/01/fabric" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+<ServiceManifest Name="TraefikPkg" Version="1.2.0" xmlns="http://schemas.microsoft.com/2011/01/fabric" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
   <ServiceTypes>
     <StatelessServiceType ServiceTypeName="TraefikType" UseImplicitHost="true" />
   </ServiceTypes>
   <!-- Treefik -->
-  <CodePackage Name="Code" Version="0.1.0-beta">
+  <CodePackage Name="Code" Version="1.2.0">
     <SetupEntryPoint>
       <ExeHost IsExternalExecutable="true">
         <Program>powershell.exe</Program>
@@ -28,7 +28,7 @@
     </EnvironmentVariables>
   </CodePackage>
   <!-- Fetcher -->
-  <CodePackage Name="Fetcher.Code" Version="0.1.0-beta">
+  <CodePackage Name="Fetcher.Code" Version="1.2.0">
     <EntryPoint>
       <ExeHost IsExternalExecutable="false">
         <Program>server.exe</Program>
@@ -45,7 +45,7 @@
       <EnvironmentVariable Name="PUBLISH_FILE_PATH" Value="..\work\sf_discovered.yaml" />
     </EnvironmentVariables>
   </CodePackage>
-  <ConfigPackage Name="Config" Version="0.1.0-beta" />
+  <ConfigPackage Name="Config" Version="1.2.0" />
   <Resources>
     <Endpoints>
       <Endpoint Name="ReverseProxyEndpoint0" UriScheme="http" CodePackageRef="Code" />

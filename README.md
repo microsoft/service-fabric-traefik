@@ -1,4 +1,4 @@
-# ServiceFabricTraefik 1.1.0
+# ServiceFabricTraefik 1.2.0
 
 The reverse proxy is an application, supplied out of band from the service fabric distribution, that customers deploy to their clusters and handles proxying traffic to backend services. The service, that potentially runs on every node in the cluster, takes care of handling endpoint resolution, automatic retry, and other connection failures on behalf of the clients. The reverse proxy can be configured to apply various policies as it handles requests from client services.
 
@@ -55,7 +55,7 @@ Connect-ServiceFabricCluster -ConnectionEndpoint @('sf-win-cluster.westus2.cloud
 
 # Use this to remove a previous Traefik Application
 #Remove-ServiceFabricApplication -ApplicationName fabric:/traefik -Force
-#Unregister-ServiceFabricApplicationType -ApplicationTypeName TraefikType -ApplicationTypeVersion 1.1.0 -Force
+#Unregister-ServiceFabricApplicationType -ApplicationTypeName TraefikType -ApplicationTypeVersion 1.2.0 -Force
 
 #Copy and register and run the Traefik Application
 Copy-ServiceFabricApplicationPackage -CompressPackage -ApplicationPackagePath $appPath # -ApplicationPackagePathInImageStore traefik
@@ -75,12 +75,12 @@ $p = @{
     #ReverseProxy_PlacementConstraints="NodeType == NT2"
 }
 $p
-New-ServiceFabricApplication -ApplicationName fabric:/traefik -ApplicationTypeName TraefikType -ApplicationTypeVersion 1.1.0 -ApplicationParameter $p
+New-ServiceFabricApplication -ApplicationName fabric:/traefik -ApplicationTypeName TraefikType -ApplicationTypeVersion 1.2.0 -ApplicationParameter $p
 
 
 #OR if updating existing version:  
 
-Start-ServiceFabricApplicationUpgrade -ApplicationName fabric:/traefik -ApplicationTypeVersion 1.1.0 -Monitored -FailureAction rollback
+Start-ServiceFabricApplicationUpgrade -ApplicationName fabric:/traefik -ApplicationTypeVersion 1.2.0 -Monitored -FailureAction rollback
 ```  
 
 ## Add the right labels to your services
@@ -202,10 +202,56 @@ This repo includes:
 
 ## Clone, Build and get Latest Executables
 
-1. Users can clone the github repo and make
-changes to server/fetcher app under /serviceFabricDiscoveryService. Once changes have been made the binary can be manually built ("go build ./cmd/server") and moved to the correct sf code package ("./TraefikProxyApp/ApplicationPackageRoot/TraefikPkg/Fetcher.Code").
+The build produces three artifacts: the Go discovery service (`server.exe`), the third-party
+`traefik.exe`, and the Service Fabric package that bundles them. The steps below use absolute
+paths so they can be run from any working directory (replace `C:\src\service-fabric-traefik`
+with your clone location).
 
-2. Get latest traefik.exe from [traefik github page](https://github.com/traefik/traefik/releases) and place it under its corresponding sf code package ("./TraefikProxyApp/ApplicationPackageRoot/TraefikPkg/Code")
+**Prerequisites:** Go 1.23+; and for packaging the app, the Service Fabric SDK + MSBuild / Visual Studio 2019.
+
+> Run steps 4–5 from a **Developer PowerShell for Visual Studio** so `msbuild` and `nuget` are on
+> your PATH. Otherwise, invoke them by full path, e.g.
+> `& "C:\Program Files\Microsoft Visual Studio\2022\Enterprise\MSBuild\Current\bin\MSBuild.exe" ...`
+
+1. Build the Go server/fetcher (source under `/serviceFabricDiscoveryService`). The `go.mod` is in
+that subfolder, so build with `-C` (building from the repo root fails with "cannot find main module"):
+
+   ```powershell
+   go build -C C:\src\service-fabric-traefik\src\serviceFabricDiscoveryService -o dist\server.exe .\cmd
+   ```
+
+2. Stage `server.exe` into its code package:
+
+   ```powershell
+   Copy-Item C:\src\service-fabric-traefik\src\serviceFabricDiscoveryService\dist\server.exe `
+     C:\src\service-fabric-traefik\src\TraefikProxyApp\ApplicationPackageRoot\TraefikPkg\Fetcher.Code\server.exe -Force
+   ```
+
+3. Get the latest `traefik.exe` from the [traefik github page](https://github.com/traefik/traefik/releases)
+   and place it under its code package. The helper script downloads and stages it:
+
+   ```powershell
+   & C:\src\service-fabric-traefik\src\TraefikProxyApp\Scripts\Get-TraefikBinary.ps1 -version v2.6.1 -fileName traefik_v2.6.1_windows_amd64.zip
+   ```
+
+4. Restore NuGet packages. The `.sfproj` imports its `Package` target from the
+   `Microsoft.VisualStudio.Azure.Fabric.MSBuild` package; without this step the build fails with
+   `error MSB4057: The target "Package" does not exist in the project`:
+
+   ```powershell
+   nuget restore C:\src\service-fabric-traefik\TraefikSF.sln
+   ```
+
+5. Package the Service Fabric app (Service Fabric SDK + MSBuild required):
+
+   ```powershell
+   msbuild C:\src\service-fabric-traefik\src\TraefikProxyApp\TraefikProxyApp.sfproj /t:Package /p:Configuration=Release /p:Platform=x64
+   ```
+
+   The package is written to `C:\src\service-fabric-traefik\src\TraefikProxyApp\pkg\Release`.
+
+For a **Linux** cluster, build the Go binary with `$env:GOOS="linux"` and use a Linux Traefik file
+name in step 3 (e.g. `traefik_v2.6.1_linux_amd64.tar.gz`); see "Updating manifest file" below.
 
 
 ## Updating manifest file

@@ -22,7 +22,7 @@ while (!($fileName)) {
     $fileName = Read-Host 
 }
 
-$isWindows = If ($fileName.Contains("windows")) {$true} Else {$false}
+$isWindowsTarget = If ($fileName.Contains("windows")) {$true} Else {$false}
 
 #Github and other sites now require tls1.2 without this line the script will fail with an SSL error. 
 [Net.ServicePointManager]::SecurityProtocol = "tls12, tls11, tls"
@@ -46,7 +46,7 @@ Write-Host Extracting release files -foregroundcolor Green
 #Files to delete after expanding zip file
 $changeLog = "$PSScriptRoot" + "/" + "CHANGELOG.md"
 $license = "$PSScriptRoot" + "/" + "LICENSE.md"
-if ($isWindows){
+if ($isWindowsTarget){
     Expand-Archive -Path $PSScriptRoot/$fileName -DestinationPath $PSScriptRoot  -Force
     #$name = $fileName.Replace(".zip","")
     #$traefikExePath = $PSScriptRoot + "/" + $name + "/" + "traefik.exe"
