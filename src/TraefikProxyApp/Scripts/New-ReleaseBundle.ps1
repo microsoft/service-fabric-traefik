@@ -9,16 +9,18 @@
       3. Optionally downloads traefik.exe (when -TraefikVersion/-TraefikFileName are given).
       4. Restores NuGet packages (needed for the .sfproj Package target).
       5. Runs the msbuild Package target.
-    It then assembles the packaged output into a versioned release layout. With -WindowsOnly it
-    prunes the files that are inert on a Windows cluster (Linux manifests/scripts and unused
-    Windows batch files) so the drop matches the official Windows release:
+    It then assembles the packaged output into a versioned release layout, alongside the pad.ps1
+    deploy helper and the pinger-traefik sample app. With -WindowsOnly it prunes the files that are
+    inert on a Windows cluster (Linux manifests/scripts and unused Windows batch files) so the drop
+    matches the official Windows release:
     <OutputPath>\windows\TraefikProxyApp\...
 
     Note: official releases are additionally code-signed by an internal Azure DevOps pipeline;
     this script does not sign binaries.
 
 .PARAMETER Version
-    Release version. Injected into server.exe and used for the zip name. E.g. 1.2.0
+    Release version. Injected into server.exe and used for the zip name. E.g. 1.2.0.
+    If omitted, it is derived from ApplicationTypeVersion in ApplicationManifest.xml.
 
 .PARAMETER Configuration
     Build configuration (Release or Debug). Default: Release.
@@ -54,15 +56,15 @@
     Root output directory for the assembled bundle. Default: <repo>\out.
 
 .EXAMPLE
-    # Full clean build + Windows-only bundle + zip (all defaults)
-    .\New-ReleaseBundle.ps1 -Version 1.2.0
+    # Full clean build + Windows-only bundle + zip; version derived from the app manifest
+    .\New-ReleaseBundle.ps1
 
 .EXAMPLE
-    # Just re-assemble an already-built package
-    .\New-ReleaseBundle.ps1 -SkipBuild -WindowsOnly
+    # Override the derived version and re-assemble an already-built package
+    .\New-ReleaseBundle.ps1 -Version 1.3.0 -SkipBuild -WindowsOnly
 #>
 param(
-    [string]$Version = '1.2.0',
+    [string]$Version,
     [string]$Configuration = 'Release',
     [string]$Platform = 'x64',
     [string]$TraefikVersion = 'v2.11.53',
@@ -83,6 +85,9 @@ $appProj    = Join-Path $repoRoot 'src\TraefikProxyApp\TraefikProxyApp.sfproj'
 $sln        = Join-Path $repoRoot 'TraefikSF.sln'
 $svcDir     = Join-Path $repoRoot 'src\serviceFabricDiscoveryService'
 $fetcherDir = Join-Path $repoRoot 'src\TraefikProxyApp\ApplicationPackageRoot\TraefikPkg\Fetcher.Code'
+$appManifest = Join-Path $repoRoot 'src\TraefikProxyApp\ApplicationPackageRoot\ApplicationManifest.xml'
+$padScript  = Join-Path $repoRoot 'src\TraefikProxyApp\pad.ps1'
+$pingerDir  = Join-Path $repoRoot 'eng\SfExampleApps\pinger-traefik'
 $goModule   = 'github.com/microsoft/service-fabric-traefik/serviceFabricDiscoveryService'
 
 function Resolve-MSBuild {
@@ -97,10 +102,25 @@ function Resolve-MSBuild {
     throw "MSBuild not found. Open a 'Developer PowerShell for VS', or install VS with MSBuild."
 }
 
+# Derive the release version from the app manifest unless one was passed explicitly.
+if (-not $Version) {
+    if (-not (Test-Path $appManifest)) {
+        throw "Cannot derive -Version: '$appManifest' not found. Pass -Version explicitly."
+    }
+    [xml]$manifestXml = Get-Content -LiteralPath $appManifest
+    $Version = $manifestXml.ApplicationManifest.ApplicationTypeVersion
+    if (-not $Version) {
+        throw "Cannot derive -Version: ApplicationTypeVersion missing in '$appManifest'. Pass -Version explicitly."
+    }
+    Write-Host "==> Derived version $Version from ApplicationManifest.xml" -ForegroundColor DarkCyan
+}
+
 # --- Build (unless -SkipBuild) ----------------------------------------------
 if (-not $SkipBuild) {
-    # Make sure `go` and `nuget` are reachable even in a fresh shell.
-    $env:Path = [Environment]::GetEnvironmentVariable('Path','Machine') + ';' +
+    # Augment (don't replace) the process PATH so `go` and `nuget` are reachable
+    # even in a fresh shell, while preserving any additions in the current session.
+    $env:Path = $env:Path + ';' +
+                [Environment]::GetEnvironmentVariable('Path','Machine') + ';' +
                 [Environment]::GetEnvironmentVariable('Path','User')
 
     if ($Clean) {
@@ -157,7 +177,8 @@ if (-not (Test-Path (Join-Path $PackagePath 'ApplicationManifest.xml'))) {
 $PackagePath = (Resolve-Path $PackagePath).Path
 
 $osFolder = if ($WindowsOnly) { 'windows' } else { 'any' }
-$appDest  = Join-Path $OutputPath "$osFolder\TraefikProxyApp"
+$osRoot   = Join-Path $OutputPath $osFolder
+$appDest  = Join-Path $osRoot 'TraefikProxyApp'
 
 if (Test-Path $appDest) { Remove-Item $appDest -Recurse -Force }
 New-Item -ItemType Directory -Force -Path $appDest | Out-Null
@@ -176,8 +197,25 @@ if ($WindowsOnly) {
 
 Write-Host "Assembled '$osFolder' bundle at: $appDest" -ForegroundColor Green
 
+# Stage the deploy helper and the pinger sample app so the drop matches the official layout.
+Copy-Item $padScript (Join-Path $osRoot 'pad.ps1') -Force
+Write-Host "Staged pad.ps1" -ForegroundColor Green
+
+$pingerDest = Join-Path $osRoot 'pinger-traefik'
+if (Test-Path $pingerDest) { Remove-Item $pingerDest -Recurse -Force }
+New-Item -ItemType Directory -Force -Path $pingerDest | Out-Null
+Copy-Item (Join-Path $pingerDir '*') $pingerDest -Recurse -Force
+
+if ($WindowsOnly) {
+    $pingerLinuxManifest = Join-Path $pingerDest 'PingerService\ServiceManifestLinux.xml'
+    if (Test-Path $pingerLinuxManifest) {
+        Remove-Item $pingerLinuxManifest -Force
+        Write-Host "  pruned pinger-traefik\PingerService\ServiceManifestLinux.xml" -ForegroundColor DarkGray
+    }
+}
+Write-Host "Staged pinger-traefik sample app" -ForegroundColor Green
+
 if ($Zip) {
-    $osRoot  = Join-Path $OutputPath $osFolder
     $zipPath = Join-Path $OutputPath "service-fabric-traefik-$Version-$osFolder.zip"
     if (Test-Path $zipPath) { Remove-Item $zipPath -Force }
     Compress-Archive -Path $osRoot -DestinationPath $zipPath
