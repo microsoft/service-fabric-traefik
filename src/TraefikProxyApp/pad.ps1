@@ -2,7 +2,7 @@ Connect-ServiceFabricCluster
 
 # Register and run the Traefik Application
 Remove-ServiceFabricApplication -ApplicationName fabric:/traefik -Force
-Unregister-ServiceFabricApplicationType -ApplicationTypeName TraefikType -ApplicationTypeVersion 0.1.0-beta -Force
+Unregister-ServiceFabricApplicationType -ApplicationTypeName TraefikType -ApplicationTypeVersion 1.2.0 -Force
 
 Copy-ServiceFabricApplicationPackage -ApplicationPackagePath .\traefik\ # -ApplicationPackagePathInImageStore traefik
 Register-ServiceFabricApplicationType -ApplicationPathInImageStore traefik
@@ -18,7 +18,7 @@ $p = @{
     #ReverseProxy_PlacementConstraints="NodeType == NT2"
 }
 $p
-New-ServiceFabricApplication -ApplicationName fabric:/traefik -ApplicationTypeName TraefikType -ApplicationTypeVersion 0.1.0-beta -ApplicationParameter $p
+New-ServiceFabricApplication -ApplicationName fabric:/traefik -ApplicationTypeName TraefikType -ApplicationTypeVersion 1.2.0 -ApplicationParameter $p
 
 
 # Sample pinger app for validating (navidate to /pinger7000/PingerService/id)
