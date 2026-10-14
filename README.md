@@ -207,7 +207,7 @@ The build produces three artifacts: the Go discovery service (`server.exe`), the
 paths so they can be run from any working directory (replace `C:\src\service-fabric-traefik`
 with your clone location).
 
-**Prerequisites:** Go 1.23+; and for packaging the app, the Service Fabric SDK + MSBuild / Visual Studio 2019.
+**Prerequisites:** Go 1.25.0+; and for packaging the app, the Service Fabric SDK + MSBuild / Visual Studio 2019.
 
 > Run steps 4–5 from a **Developer PowerShell for Visual Studio** so `msbuild` and `nuget` are on
 > your PATH. Otherwise, invoke them by full path, e.g.
